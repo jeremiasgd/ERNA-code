@@ -1,0 +1,5556 @@
+{----------------------------------------------------------------------}
+{                        erna.2.3.fox                                  }
+{----------------------------------------------------------------------}
+{ Running in COSY9.1                                                   }
+{ 130720 - modifications to the layout with small adjustments          }
+
+
+INCLUDE 'COSY' ;
+
+PROCEDURE RUN;
+
+{**********************************************************************}
+{             DECLARATION OF CONSTANTS AND VARIABLES                   }
+{**********************************************************************}
+
+  {*** some constants that provide convenient code reading ***}
+  
+  {fringe field modes}
+  VARIABLE FF_MODE0_OFF                1;
+  VARIABLE FF_MODE1_INTEGRAL_METHOD    1;
+  VARIABLE FF_MODE2_SYMPLECTIC_SCALING 1;
+  VARIABLE FF_MODE3_ENGE_FUNCTION      1;
+  VARIABLE FF_MODE_1_ENTRANCE          1;
+  VARIABLE FF_MODE_2_EXIT              1;
+
+  {colors}
+  VARIABLE BLACK   1;
+  VARIABLE BLUE    1;
+  VARIABLE RED     1;
+  VARIABLE YELLOW  1;
+  VARIABLE GREEN   1;
+  VARIABLE YELGRE  1;
+  VARIABLE SKYBLUE 1;
+  VARIABLE MAGENTA 1;
+  VARIABLE NAVY    1;
+
+  VARIABLE COLORNAME 11 9;
+
+  {ray definition modes}
+  VARIABLE RDM_ALLRAYS      1;
+  VARIABLE RDM_SELECTEDRAYS 1;
+  VARIABLE RDM_OUTERRAYS    1;
+
+  {ray definition color codes}
+  VARIABLE RDCC_RED               1;
+  VARIABLE RDCC_RANDOM            1;
+  VARIABLE RDCC_POSITIONDEPENDING 1;
+  VARIABLE RDCC_OUTERRAYCOLORING  1;
+  VARIABLE RDCC_TWOBEAMS          1;
+  VARIABLE RDCC_THREEBEAMS        1;
+
+  VARIABLE INIT_FIRST_LAST_ELEMENT 1;
+  VARIABLE PHYSICAL_FIRST_ELEMENT  1;
+  VARIABLE PHYSICAL_LAST_ELEMENT   1;
+
+  VARIABLE ELEMENTNAME 50 100;
+
+  {--------------------------------------------}
+  {   ion optical elements of CIRCE beamline   }
+  {   and ERNA separator                       }
+  {--------------------------------------------}
+  VARIABLE EL_STARTPOINT                     1;
+  VARIABLE EL_DL_STARTPOINT_HEFC             1;
+  VARIABLE EL_HEFC                           1;
+  VARIABLE EL_DL_HEFC_OBJECTSLITS            1;
+  VARIABLE EL_OBJECTSLITS                    1;
+  VARIABLE EL_DL_OBJSLITS_ANALYSINGMAGNET    1;
+  VARIABLE EL_ANALYSINGMAGNET_IN             1;
+  VARIABLE EL_ANALYSINGMAGNET_OUT            1;
+  VARIABLE EL_DL_ANALYSINGMAGNET_IMAGESLITS  1;
+  VARIABLE EL_IMAGESLITS                     1;
+  VARIABLE EL_DL_IMAGESLITS_IMAGEFC          1;
+  VARIABLE EL_IMAGEFC                        1;
+  VARIABLE EL_DL_IMAGEFC_ESA_A               1;
+  VARIABLE EL_ESA_A                          1;
+  VARIABLE EL_DL_ESA_A_ESA_B                 1;
+  VARIABLE EL_ESA_B                          1;
+  VARIABLE EL_DL_ESA_B_SWITCHINGMAGNET       1;
+  VARIABLE EL_SWITCHINGMAGNET                1;
+  VARIABLE EL_DL_SWITCHINGMAGNET_GSISLITS    1;
+  VARIABLE EL_GSISLITS                       1;
+  VARIABLE EL_DL_GSISLITS_FOCTRIPLET         1;
+  VARIABLE EL_FOCTRIPLET                     1;
+  VARIABLE EL_DL_FOCTRIPLET_GASTARGET        1;
+  {--------------------------------------------}
+  VARIABLE EL_GASTARGET                      1;
+  {--------------------------------------------}
+  VARIABLE EL_DL_GASTARGET_CSSM              1;
+  VARIABLE EL_CSSM                           1;
+  VARIABLE EL_DL_CSSM_TRIP                   1;
+  VARIABLE EL_TRIPLET                        1;
+  VARIABLE EL_DL_TRIP_SLIT1                  1;
+  VARIABLE EL_SLIT1                          1;
+  VARIABLE EL_DL_SLIT1_FC1                   1;
+  VARIABLE EL_FC1                            1;
+  VARIABLE EL_DL_FC1_SEPWF1                  1;
+  VARIABLE EL_SEPWF1                         1;
+  VARIABLE EL_DL_SEPWF1_SFCIN                1;
+  VARIABLE EL_SLIT_SFCIN                     1;
+  VARIABLE EL_DL_SFCIN_SHUTTER               1;
+  VARIABLE EL_SHUTTER                        1;
+  VARIABLE EL_DL_SHUTTER_SLIT2               1;
+  VARIABLE EL_SLIT2                          1;
+  VARIABLE EL_DL_SLIT2_SINGLET1              1;
+  VARIABLE EL_SINGLET1                       1;
+  VARIABLE EL_DL_SINGLET1_DIPOLE                1;
+  VARIABLE EL_DIPOLE                         1;
+  VARIABLE EL_DL_DIPOLE_SLITDIPOLE           1;
+  VARIABLE EL_SLIT_DIPOLE                    1;
+  VARIABLE EL_DL_SLITDIPOLE_DIPOLEEXIT       1;
+  VARIABLE EL_SLIT_DIPOLE_EXIT               1;
+  VARIABLE EL_DL_DIPOLEEXIT_DOUBLET          1;
+  VARIABLE EL_DOUBLET                        1;
+  VARIABLE EL_DL_DOUBLET_SLIT3               1;
+  VARIABLE EL_SLIT3                          1;
+  VARIABLE EL_DL_SLIT3_SEPWF2                1;
+  VARIABLE EL_SEPWF2                         1;
+  VARIABLE EL_DL_SEPWF2_SLIT4                1;
+  VARIABLE EL_SLIT4                          1;
+  VARIABLE EL_DL_SLIT4_MCP                   1;
+  VARIABLE EL_MCP                            1;
+  VARIABLE EL_DL_MCP_Si                      1;
+  VARIABLE EL_Si                             1;
+  VARIABLE EL_DL_Si_SLIT5                    1;
+  VARIABLE EL_SLIT5                          1;
+  VARIABLE EL_SLIT5_FC4_ICTIN                1;
+  VARIABLE EL_ICT                            1;
+
+
+{--------------------------------------------}
+  {parameters of reference beam}
+  VARIABLE A 1;
+  VARIABLE W 1;
+  VARIABLE q 1;
+
+{--------------------------------------------}
+  {parameters for calculation}
+  VARIABLE calc_order       1;
+  VARIABLE phase_space_dim  1;
+  VARIABLE N_parameter      1;
+  VARIABLE fringefield_mode 1;
+
+{--------------------------------------------}
+  {fields of ERNA beam}
+  VARIABLE B_PURWF1         1;
+  VARIABLE B_PURWF1_exp     1;
+  VARIABLE U_PURWF1         1;
+  VARIABLE E_PURWF1         1;
+  VARIABLE B_PURWF2         1;
+  VARIABLE B_PURWF2_exp     1;
+  VARIABLE U_PURWF2         1;
+  VARIABLE E_PURWF2         1;
+  VARIABLE B_HEdoublet_1    1; {qdhe1}
+  VARIABLE B_HEdoublet_2    1; {qdhe2}
+  VARIABLE B_DTLsinglet1    1; {bsing1}
+  VARIABLE B_DTLsinglet2    1;
+  VARIABLE B_DTLsinglet2old 1;
+  VARIABLE B_DTLdoublet_1   1; {qdch1}
+  VARIABLE B_DTLdoublet_2   1; {qdch2}
+  VARIABLE B_defocdoublet_1 1;
+  VARIABLE B_defocdoublet_2 1;
+  VARIABLE B_foctrip_ex        1;
+  VARIABLE B_foctrip_in        1;
+
+
+{--------------------------------------------}
+  {fields of ERNA separator}
+  VARIABLE B_CSSM         1;
+  VARIABLE B_trip_ex      1;
+  VARIABLE B_trip_in      1;
+  VARIABLE B_SEPdoublet_1 1;
+  VARIABLE B_SEPdoublet_2 1;
+  VARIABLE B_singl1       1;
+  VARIABLE B_singl2       1;
+  VARIABLE B_SEPWF1       1;
+  VARIABLE B_SEPWF1_exp   1;
+  VARIABLE U_SEPWF1       1;
+  VARIABLE E_SEPWF1       1;
+  VARIABLE B_SEPWF2       1;
+  VARIABLE B_SEPWF2_exp   1;
+  VARIABLE U_SEPWF2       1;
+  VARIABLE E_SEPWF2       1;
+  VARIABLE B_dipole       1;
+  VARIABLE B_dipole_exp   1;
+
+{--------------------------------------------}
+  {field limits}
+  VARIABLE LIMIT_B_HEdoublet_1    1;
+  VARIABLE LIMIT_B_HEdoublet_2    1;
+  VARIABLE LIMIT_B_DTLsinglet1    1;
+  VARIABLE LIMIT_B_DTLsinglet2    1;
+  VARIABLE LIMIT_B_DTLdoublet_1   1;
+  VARIABLE LIMIT_B_DTLdoublet_2   1;
+  VARIABLE LIMIT_B_defocdoublet_1 1;
+  VARIABLE LIMIT_B_defocdoublet_2 1;
+  VARIABLE LIMIT_B_foctrip_ex     1;
+  VARIABLE LIMIT_B_foctrip_in     1;
+
+  VARIABLE LIMIT_B_CSSM           1;
+  VARIABLE LIMIT_B_trip_ex        1;
+  VARIABLE LIMIT_B_trip_in        1;
+  VARIABLE LIMIT_B_singl1         1;
+  VARIABLE LIMIT_B_SEPdoublet_1   1;
+  VARIABLE LIMIT_B_SEPdoublet_2   1;
+  VARIABLE LIMIT_B_singl2         1;
+
+  VARIABLE LIMIT_B_dipole         1;
+
+{--------------------------------------------}
+  {drift lengths of ERNA incident beam}
+  VARIABLE DL_startpoint_HEFC             1;
+  VARIABLE DL_HEFC_objectslits            1;
+  VARIABLE DL_objslits_analysingmagnet 1;
+  VARIABLE DL_analysingmagnet_imageslits  1;
+  VARIABLE DL_imageslits_imageFC          1;
+  VARIABLE DL_imageFC_ESA_A               1;
+  VARIABLE DL_ESA_A_ESA_B                 1;
+  VARIABLE DL_ESA_B_switchingmagnet       1;
+  VARIABLE DL_switchingmagnet_GSISLITS    1;
+  VARIABLE DL_GSISLITS_FOCTRIPLET         1;
+  VARIABLE DL_FOCTRIPLET_GASTARGET        1;
+
+{--------------------------------------------}
+  {drift lengths of ERNA separator}
+  VARIABLE DL_gastarget_CSSM  1;
+  VARIABLE DL_CSSM_triplet       1;
+  VARIABLE DL_trip_slit1         1;
+  VARIABLE DL_slit1_FC1          1;
+  VARIABLE DL_FC1_sepWF1         1;
+  VARIABLE DL_sepWF1_SFCin       1;
+  VARIABLE DL_SFCin_shutter      1;
+  VARIABLE DL_shutter_slit2      1;
+  VARIABLE DL_slit2_singl1       1;
+  VARIABLE DL_singl1_dipole      1;
+  VARIABLE DL_dip_slitdip        1;
+  VARIABLE DL_slitdip_dipexit    1;
+  VARIABLE DL_dipexit_doubl      1;
+  VARIABLE DL_doubl_slit3        1;
+  VARIABLE DL_slit3_sepWF2       1;
+  VARIABLE DL_sepWF2_slit4       1;
+  VARIABLE DL_slit4_MCP          1;
+  VARIABLE DL_MCP_Si             1;
+  VARIABLE DL_Si_slit5           1;
+
+{--------------------------------------------}
+  {edges and slit dimensions}
+  VARIABLE dim_objectslits      5;
+  VARIABLE dim_imageslits       5;
+
+  VARIABLE dim_slit1            5;
+  VARIABLE dim_slit2            5;
+  VARIABLE dim_slit3            5;
+  VARIABLE dim_slit4            5;
+  VARIABLE dim_slit5            5;
+  VARIABLE dim_MCP              5;
+  VARIABLE dim_Si               5;
+  VARIABLE dim_slitdip          5;
+  VARIABLE dim_shutter          5;
+  VARIABLE dim_SFCin            5;
+  VARIABLE dim_dipexit          5;
+
+{--------------------------------------------}
+  {deviations of optical element axes}
+  VARIABLE element_deviation 1 100 5;
+
+{--------------------------------------------}
+  {calculation start/stop coordinates inside of elements}
+  VARIABLE element_start 1 100;
+  VARIABLE element_stop  1 100;
+{--------------------------------------------}
+  {vacuum chamber geometry}
+  VARIABLE chamber    5;
+  VARIABLE dim    5 100; {2nd param = max no of elements}
+  VARIABLE name      80;
+  VARIABLE chamberlen 1;
+
+{--------------------------------------------------------}
+  {ray data}
+  VARIABLE last_element  1;
+  VARIABLE first_element 1;
+  VARIABLE Ra            1 150500 10;
+  {********************************
+  VARIABLE Ra_backup     1 2500 10;
+  ********************************}
+  VARIABLE N_ray_max     1;
+
+{--------------------------------------------------------}
+  {matrices}
+  VARIABLE MAP_i     1000 8 100;
+  VARIABLE MAP_dummy 1000 8;
+
+{--------------------------------------------------------}
+  {filenames}
+  VARIABLE raysfile 80;
+  VARIABLE outfile  80;
+  VARIABLE filename 80;
+  VARIABLE initfile 80;
+
+{--------------------------------------------------------}
+  {misc stuff}
+  VARIABLE next_step             3;
+  VARIABLE save                  1;
+  VARIABLE debugging             1;
+  VARIABLE ComputeReversedSystem 1;
+  VARIABLE showSlitsAndFCs       1;
+  VARIABLE show3Dgraphics        1;
+  VARIABLE use_new_DTLsinglet    1;
+  VARIABLE projection_plane      1;
+  VARIABLE x_min                 1;
+  VARIABLE y_min                 1;
+  VARIABLE x_max                 1;
+  VARIABLE y_max                 1;
+  VARIABLE xp_min                1;
+  VARIABLE yp_min                1;
+  VARIABLE xp_max                1;
+  VARIABLE yp_max                1;
+  VARIABLE elapsed_time          1;
+  VARIABLE beam_diameter         1;
+  VARIABLE beam_divergence       1;
+  VARIABLE session_name         20;
+  VARIABLE session_number        1;
+  VARIABLE tmp1                  1;
+  VARIABLE tmp2                  1;
+  VARIABLE tmp3                  1;
+  VARIABLE txt1                 80;
+  VARIABLE phi_lab               1;
+  VARIABLE theta_lab             1;
+
+
+
+{*****************************************************************************}
+{                                 PROCEDURES                                  }
+{*****************************************************************************}
+
+
+{----------------------------------------------------}
+{----------------------------------------------------}
+  PROCEDURE InitConstants; {initialize the global (pseudo-)constants}
+{    LFALSE debugging; }
+    LTRUE debugging;
+
+    FF_MODE0_OFF                := 0;
+    FF_MODE1_INTEGRAL_METHOD    := 1;
+    FF_MODE2_SYMPLECTIC_SCALING := 2;
+    FF_MODE3_ENGE_FUNCTION      := 3;
+    FF_MODE_1_ENTRANCE          :=-1;
+    FF_MODE_2_EXIT              :=-2;
+
+    BLACK   := 1; COLORNAME(BLACK)   := 'BLACK';
+    BLUE    := 2; COLORNAME(BLUE)    := 'BLUE';
+    RED     := 3; COLORNAME(RED)     := 'RED';
+    YELLOW  := 4; COLORNAME(YELLOW)  := 'YELLOW';
+    GREEN   := 5; COLORNAME(GREEN)   := 'GREEN';
+    YELGRE  := 6; COLORNAME(YELGRE)  := 'YELLOWGREEN';
+    SKYBLUE := 7; COLORNAME(SKYBLUE) := 'SKYBLUE';
+    MAGENTA := 8; COLORNAME(MAGENTA) := 'MAGENTA';
+    NAVY    := 9; COLORNAME(NAVY)    := 'NAVY';
+
+    INIT_FIRST_LAST_ELEMENT := -1;
+
+    {ray definition modes}
+    RDM_ALLRAYS      := 1;
+    RDM_SELECTEDRAYS := 2;
+    RDM_OUTERRAYS    := 3;
+
+    {ray definition color codes}
+    RDCC_RED               := 1;
+    RDCC_RANDOM            := 2;
+    RDCC_POSITIONDEPENDING := 3;
+    RDCC_OUTERRAYCOLORING  := 4;
+    RDCC_TWOBEAMS          := 5;
+    RDCC_THREEBEAMS        := 6;
+
+    IF NOT(ComputeReversedSystem);
+      EL_STARTPOINT                     := 01;
+      EL_DL_STARTPOINT_HEFC             := 02;
+      EL_HEFC                           := 03;
+      EL_DL_HEFC_OBJECTSLITS            := 04;
+      EL_OBJECTSLITS                    := 05;
+      EL_DL_OBJSLITS_ANALYSINGMAGNET    := 06;
+      EL_ANALYSINGMAGNET_IN             := 07;
+      EL_ANALYSINGMAGNET_OUT            := 08;
+      EL_DL_ANALYSINGMAGNET_IMAGESLITS  := 09;
+      EL_IMAGESLITS                     := 10;
+      EL_DL_IMAGESLITS_IMAGEFC          := 11;
+      EL_IMAGEFC                        := 12;
+      EL_DL_IMAGEFC_ESA_A               := 13;
+      EL_ESA_A                          := 14;
+      EL_DL_ESA_A_ESA_B                 := 15;
+      EL_ESA_B                          := 16;
+      EL_DL_ESA_B_SWITCHINGMAGNET       := 17;
+      EL_SWITCHINGMAGNET                := 18;
+      EL_DL_SWITCHINGMAGNET_GSISLITS    := 19;
+      EL_GSISLITS                       := 20;
+      EL_DL_GSISLITS_FOCTRIPLET         := 21;
+      EL_FOCTRIPLET                     := 22;
+      EL_DL_FOCTRIPLET_GASTARGET        := 23;
+      EL_GASTARGET                      := 24;
+      EL_DL_GASTARGET_CSSM              := 25;
+      EL_CSSM                           := 26;
+      EL_DL_CSSM_TRIP                   := 27;
+      EL_TRIPLET                        := 28;
+      EL_DL_TRIP_SLIT1                  := 29;
+      EL_SLIT1                          := 30;
+      EL_DL_SLIT1_FC1                   := 31;
+      EL_FC1                            := 32;
+      EL_DL_FC1_SEPWF1                  := 33;
+      EL_SEPWF1                         := 34;
+      EL_DL_SEPWF1_SFCIN                := 35;
+      EL_SLIT_SFCIN                     := 36;
+      EL_DL_SFCIN_SHUTTER               := 37;
+      EL_SHUTTER                        := 38;
+      EL_DL_SHUTTER_SLIT2               := 39;
+      EL_SLIT2                          := 40;
+      EL_DL_SLIT2_SINGLET1              := 41;
+      EL_SINGLET1                       := 42;
+      EL_DL_SINGLET1_DIPOLE             := 43;
+      EL_DIPOLE                         := 44;
+      EL_DL_DIPOLE_SLITDIPOLE           := 45;
+      EL_SLIT_DIPOLE                    := 46;
+      EL_DL_SLITDIPOLE_DIPOLEEXIT       := 47;
+      EL_SLIT_DIPOLE_EXIT               := 48;
+      EL_DL_DIPOLEEXIT_DOUBLET          := 49;
+      EL_DOUBLET                        := 50;
+      EL_DL_DOUBLET_SLIT3               := 51;
+      EL_SLIT3                          := 52;
+      EL_DL_SLIT3_SEPWF2                := 53;
+      EL_SEPWF2                         := 54;
+      EL_DL_SEPWF2_SLIT4                := 55;
+      EL_SLIT4                          := 56;
+      EL_DL_SLIT4_MCP                   := 57;
+      EL_MCP                            := 58;
+      EL_DL_MCP_Si                      := 59;
+      EL_Si                             := 60;
+      EL_DL_Si_SLIT5                    := 61;
+      EL_SLIT5                          := 62;
+      EL_SLIT5_FC4_ICTIN                := 63;
+      EL_ICT                            := 64;
+
+    ELSEIF 1=1;
+
+      EL_STARTPOINT                     := 64;
+      EL_DL_STARTPOINT_HEFC             := 63;
+      EL_HEFC                           := 62;
+      EL_DL_HEFC_OBJECTSLITS            := 61;
+      EL_OBJECTSLITS                    := 60;
+      EL_DL_OBJSLITS_ANALYSINGMAGNET    := 59;
+      EL_ANALYSINGMAGNET_IN             := 58;
+      EL_ANALYSINGMAGNET_OUT            := 57;
+      EL_DL_ANALYSINGMAGNET_IMAGESLITS  := 56;
+      EL_IMAGESLITS                     := 55;
+      EL_DL_IMAGESLITS_IMAGEFC          := 54;
+      EL_IMAGEFC                        := 53;
+      EL_DL_IMAGEFC_ESA_A               := 52;
+      EL_ESA_A                          := 51;
+      EL_DL_ESA_A_ESA_B                 := 50;
+      EL_ESA_B                          := 49;
+      EL_DL_ESA_B_SWITCHINGMAGNET       := 48;
+      EL_SWITCHINGMAGNET                := 47;
+      EL_DL_SWITCHINGMAGNET_GSISLITS    := 46;
+      EL_GSISLITS                       := 45;
+      EL_DL_GSISLITS_FOCTRIPLET         := 44;
+      EL_FOCTRIPLET                     := 43;
+      EL_DL_FOCTRIPLET_GASTARGET        := 42;
+      EL_GASTARGET                      := 41;
+      EL_DL_GASTARGET_CSSM              := 40;
+      EL_CSSM                           := 39;
+      EL_DL_CSSM_TRIP                   := 38;
+      EL_TRIPLET                        := 37;
+      EL_DL_TRIP_SLIT1                  := 36;
+      EL_SLIT1                          := 35;
+      EL_DL_SLIT1_FC1                   := 34;
+      EL_FC1                            := 33;
+      EL_DL_FC1_SEPWF1                  := 32;
+      EL_SEPWF1                         := 31;
+      EL_DL_SEPWF1_SFCIN                := 30;
+      EL_SLIT_SFCIN                     := 29;
+      EL_DL_SFCIN_SHUTTER               := 28;
+      EL_SHUTTER                        := 27;
+      EL_DL_SHUTTER_SLIT2               := 26;
+      EL_SLIT2                          := 25;
+      EL_DL_SLIT2_SINGLET1              := 24;
+      EL_SINGLET1                       := 23;
+      EL_DL_SINGLET1_DIPOLE             := 22;
+      EL_DIPOLE                         := 21;
+      EL_DL_DIPOLE_SLITDIPOLE           := 20;
+      EL_SLIT_DIPOLE                    := 19;
+      EL_DL_SLITDIPOLE_DIPOLEEXIT       := 18;
+      EL_SLIT_DIPOLE_EXIT               := 17;
+      EL_DL_DIPOLEEXIT_DOUBLET          := 16;
+      EL_DOUBLET                        := 15;
+      EL_DL_DOUBLET_SLIT3               := 14;
+      EL_SLIT3                          := 13;
+      EL_DL_SLIT3_SEPWF2                := 12;
+      EL_SEPWF2                         := 11;
+      EL_DL_SEPWF2_SLIT4                := 10;
+      EL_SLIT4                          := 09;
+      EL_DL_SLIT4_MCP                   := 08;
+      EL_MCP                            := 07;
+      EL_DL_MCP_Si                      := 06;
+      EL_Si                             := 05;
+      EL_DL_Si_SLIT5                    := 04;
+      EL_SLIT5                          := 03;
+      EL_SLIT5_FC4_ICTIN                := 02;
+      EL_ICT                            := 01;
+
+    ENDIF;
+
+    ELEMENTNAME(EL_STARTPOINT)
+                :='STARTPOINT';
+    ELEMENTNAME(EL_DL_STARTPOINT_HEFC)
+                :='DL_STARTPOINT_HEFC';
+    ELEMENTNAME(EL_HEFC)
+                :='HEFC';
+    ELEMENTNAME(EL_DL_HEFC_OBJECTSLITS)
+                :='DL_HEFC_OBJECTSLITS';
+    ELEMENTNAME(EL_OBJECTSLITS)
+                :='OBJECTSLITS';
+    ELEMENTNAME(EL_DL_OBJSLITS_ANALYSINGMAGNET)
+                :='DL_OBJSLITS_ANALYSINGMAGNET';
+    ELEMENTNAME(EL_ANALYSINGMAGNET_IN)
+                :='ANALYSINGMAGNET_IN';
+    ELEMENTNAME(EL_ANALYSINGMAGNET_OUT)
+                :='ANALYSINGMAGNET_OUT';
+    ELEMENTNAME(EL_DL_ANALYSINGMAGNET_IMAGESLITS)
+                :='DL_ANALYSINGMAGNET_IMAGESLITS';
+    ELEMENTNAME(EL_IMAGESLITS)
+                :='IMAGESLITS';
+    ELEMENTNAME(EL_DL_IMAGESLITS_IMAGEFC)
+                :='DL_IMAGESLITS_IMAGEFC';
+    ELEMENTNAME(EL_IMAGEFC)
+                :='IMAGEFC';
+    ELEMENTNAME(EL_DL_IMAGEFC_ESA_A)
+                :='DL_IMAGEFC_ESA_A';
+    ELEMENTNAME(EL_ESA_A)
+                :='ESA_A';
+    ELEMENTNAME(EL_DL_ESA_A_ESA_B)  
+                :='DL_ESA_A_ESA_B'; 
+    ELEMENTNAME(EL_ESA_B)
+                :='ESA_B';
+    ELEMENTNAME(EL_DL_ESA_B_SWITCHINGMAGNET)
+                :='DL_ESA_B_SWITCHINGMAGNET';
+    ELEMENTNAME(EL_SWITCHINGMAGNET)
+                :='SWITCHINGMAGNET';
+    ELEMENTNAME(EL_DL_SWITCHINGMAGNET_GSISLITS)
+                :='DL_SWITCHINGMAGNET_GSISLITS';
+    ELEMENTNAME(EL_GSISLITS)
+                :='GSISLITS';
+    ELEMENTNAME(EL_DL_GSISLITS_FOCTRIPLET)
+                :='DL_GSISLITS_FOCTRIPLET';
+    ELEMENTNAME(EL_FOCTRIPLET)
+                :='FOCTRIPLET';
+    ELEMENTNAME(EL_DL_FOCTRIPLET_GASTARGET)
+                :='DL_DL_FOCTRIPLET_GASTARGET';
+    ELEMENTNAME(EL_GASTARGET)
+                :='GASTARGET';
+    ELEMENTNAME(EL_DL_GASTARGET_CSSM)
+                :='DL_GASTARGET_CSSM';
+    ELEMENTNAME(EL_CSSM)
+                :='CSSM';
+    ELEMENTNAME(EL_DL_CSSM_TRIP)
+                :='DL_CSSM_TRIP';
+    ELEMENTNAME(EL_TRIPLET)
+                :='TRIPLET';
+    ELEMENTNAME(EL_DL_TRIP_SLIT1)
+                :='DL_TRIP_SLIT1';
+    ELEMENTNAME(EL_SLIT1)
+                :='SLIT1';
+    ELEMENTNAME(EL_DL_SLIT1_FC1)
+                :='DL_SLIT1_FC1';
+    ELEMENTNAME(EL_FC1)
+                :='FC1';
+    ELEMENTNAME(EL_DL_FC1_SEPWF1)
+                :='DL_FC1_SEPWF1';
+    ELEMENTNAME(EL_SEPWF1)
+                :='SEPWF1';
+    ELEMENTNAME(EL_DL_SEPWF1_SFCIN)
+                :='DL_SEPWF1_SFCIN';
+    ELEMENTNAME(EL_SLIT_SFCIN)
+                :='SLIT_SFCIN';
+    ELEMENTNAME(EL_DL_SFCIN_SHUTTER)
+                :='DL_SFCIN_SHUTTER';
+    ELEMENTNAME(EL_SHUTTER)
+                :='SHUTTER';
+    ELEMENTNAME(EL_DL_SHUTTER_SLIT2)
+                :='DL_SHUTTER_SLIT2';
+    ELEMENTNAME(EL_SLIT2)
+                :='SLIT2';
+    ELEMENTNAME(EL_DL_SLIT2_SINGLET1)
+                :='DL_SLIT2_SINGLET1';
+    ELEMENTNAME(EL_SINGLET1)
+                :='SINGLET1';
+    ELEMENTNAME(EL_DL_SINGLET1_DIPOLE)
+                :='DL_SINGLET1_DIPOLE';
+    ELEMENTNAME(EL_DIPOLE)
+                :='DIPOLE 60deg';
+    ELEMENTNAME(EL_DL_DIPOLE_SLITDIPOLE)
+                :='DL_DIPOLE_SLITDIPOLE';
+    ELEMENTNAME(EL_SLIT_DIPOLE)
+                :='SLIT_DIPOLE';
+    ELEMENTNAME(EL_DL_SLITDIPOLE_DIPOLEEXIT)
+                :='DL_SLITDIPOLE_DIPOLEEXIT';
+    ELEMENTNAME(EL_SLIT_DIPOLE_EXIT)
+                :='SLIT_DIPOLE_EXIT';
+    ELEMENTNAME(EL_DL_DIPOLEEXIT_DOUBLET)
+                :='DL_DIPOLEEXIT_DOUBLET';
+    ELEMENTNAME(EL_DOUBLET)
+                :='DOUBLET';
+    ELEMENTNAME(EL_DL_DOUBLET_SLIT3)
+                :='DL_DOUBLET_SLIT3';
+    ELEMENTNAME(EL_SLIT3)
+                :='SLIT3';
+    ELEMENTNAME(EL_DL_SLIT3_SEPWF2)
+                :='DL_SLIT3_SEPWF2';
+    ELEMENTNAME(EL_SEPWF2)
+                :='SEPWF2';
+    ELEMENTNAME(EL_DL_SEPWF2_SLIT4)
+                :='DL_SEPWF2_SLIT4';
+    ELEMENTNAME(EL_SLIT4)
+                :='SLIT4';
+    ELEMENTNAME(EL_DL_SLIT4_MCP)
+                :='DL_SLIT4_MCP';
+    ELEMENTNAME(EL_MCP)
+                :='MCP';
+    ELEMENTNAME(EL_DL_MCP_Si)
+                :='DL_MCP_Si';
+    ELEMENTNAME(EL_Si)
+                :='Si_DETECTOR';
+    ELEMENTNAME(EL_DL_Si_SLIT5)
+                :='DL_Si_SLIT5';
+    ELEMENTNAME(EL_SLIT5)
+                :='SLIT5';
+    ELEMENTNAME(EL_SLIT5_FC4_ICTIN)
+                :='SLIT5_FC4_ICTIN';
+    ELEMENTNAME(EL_ICT)
+                :='ICT';
+
+  ENDPROCEDURE;
+{----------------------------------------------------}
+
+
+{----------------------------------------------------}
+  PROCEDURE ApplyMap thismap;
+    AM thismap;
+    {IF debugging; WRITE 6 '      AM: apply map'; ENDIF;}
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE BeginPicture;
+    BP;
+    IF debugging; WRITE 6 '      BP: begin picture'; ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE ChangeBending;
+    CB;
+    IF debugging; WRITE 6 '      CB: change bending'; ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE ClearRays;
+    CR;
+    {IF debugging; WRITE 6 '      CR: clear rays'; ENDIF;}
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE DriftLength length;
+    DL length;
+    IF debugging;
+      WRITE 6 '      DL: drift length '&SF(length,'(F7.3)')&'m';
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE EndPicture;
+    EP;
+    IF debugging; WRITE 6 '      EP: end picture'; ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE FringeFieldMode ffmode;
+    VARIABLE txt 32;
+
+    FR ffmode;
+
+    IF debugging;
+      IF     ffmode=FF_MODE0_OFF;
+        txt:='(off)';
+      ELSEIF ffmode=FF_MODE1_INTEGRAL_METHOD;
+        txt:='(integral method)';
+      ELSEIF ffmode=FF_MODE2_SYMPLECTIC_SCALING;
+        txt:='(symplectic scaling)';
+      ELSEIF ffmode=FF_MODE3_ENGE_FUNCTION;
+        txt:='(Enge function)';
+      ELSEIF ffmode=FF_MODE_1_ENTRANCE;
+        txt:='(entrance field)';
+      ELSEIF ffmode=FF_MODE_2_EXIT;
+        txt:='(exit field)';
+      ENDIF;
+
+      WRITE 6 '      FR: fringe field mode is now '&SF(ffmode,'(I2)')&' '&txt;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE MagneticQuadrupole length flux_density_at_pole_tip aperture;
+    VARIABLE txt 80;
+
+    MQ length flux_density_at_pole_tip aperture;
+
+    IF debugging;
+      txt:=    '(len='&SF(length,'(F6.3)')&'m,';
+      txt:=txt&' flx='&SF(flux_density_at_pole_tip,'(F6.3)')&'T,';
+      txt:=txt&' apt='&SF(aperture,'(F6.3)')&'m)';
+      WRITE 6  '      MQ: magnetic quadrupole '&txt;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE MagneticSector radius angle aperture n1 n2 n3 n4 n5;
+    VARIABLE txt 80;
+
+    MS radius angle aperture n1 n2 n3 n4 n5;
+
+    IF debugging;
+      txt:=    '(rad='&SF(radius,'(F6.3)')&'m,';
+      txt:=txt&' ang='&SF(angle,'(F6.3)')&'deg,';
+      txt:=txt&' apt='&SF(aperture,'(F6.3)')&'m,';
+      WRITE 6  '      MS: magnetic sector '&txt;
+      txt:=    '  n1='&SF(n1,'(F6.3)')&', ';
+      txt:=txt&'  n2='&SF(n2,'(F6.3)')&', ';
+      txt:=txt&'  n3='&SF(n3,'(F6.3)')&',   ';
+      txt:=txt&'  n4='&SF(n4,'(F6.3)')&', ';
+      txt:=txt&'  n5='&SF(n5,'(F6.3)')&')';
+      WRITE 6  '             '&txt;
+    ENDIF;
+  ENDPROCEDURE;
+
+{----------------------------------------------------}
+  PROCEDURE MagneticDipole radius angle aperture tilt_1 tilt_2;
+    VARIABLE txt 80;
+
+    DI radius angle aperture tilt_1 0 tilt_2 0;
+
+    IF debugging;
+      txt:=    '(rad='&SF(radius,'(F6.3)')&'m,';
+      txt:=txt&' ang='&SF(angle,'(F6.3)')&'deg,';
+      txt:=txt&' apt='&SF(aperture,'(F6.3)')&'m,';
+      WRITE 6  '      MS: magnetic dipole '&txt;
+      txt:=    '  tilt_1='&SF(tilt_1,'(F6.3)')&', ';
+      txt:=txt&'  tilt_2='&SF(tilt_2,'(F6.3)')&', ';
+      WRITE 6  '             '&txt;
+    ENDIF;
+  ENDPROCEDURE;
+
+{----------------------------------------------------}
+  PROCEDURE ElectricSector radius angle aperture n1 n2 n3 n4 n5;
+    VARIABLE txt 80;
+
+    ES radius angle aperture n1 n2 n3 n4 n5;
+
+    IF debugging;
+      txt:=    '(rad='&SF(radius,'(F6.3)')&'m,';
+      txt:=txt&' ang='&SF(angle,'(F6.3)')&'deg,';
+      txt:=txt&' apt='&SF(aperture,'(F6.3)')&'m,';
+      WRITE 6  '      ES: electric sector '&txt;
+      txt:=    '  n1='&SF(n1,'(F6.3)')&', ';
+      txt:=txt&'  n2='&SF(n2,'(F6.3)')&', ';
+      txt:=txt&'  n3='&SF(n3,'(F6.3)')&',   ';
+      txt:=txt&'  n4='&SF(n4,'(F6.3)')&', ';
+      txt:=txt&'  n5='&SF(n5,'(F6.3)')&')';
+      WRITE 6  '             '&txt;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE PictureTYpe scale;
+    PTY scale;
+    IF debugging;
+      WRITE 6 '     PTY: picture type and scale set to '&SF(scale,'(F7.3)');
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE PoincareSection width;
+    PS width;
+    IF debugging;
+      WRITE 6 '      PS: Poincare section '&SF(width,'(F7.3)')&'m';
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE PrintPicture unit phi theta;
+    VARIABLE txt 120;
+
+    IF debugging;
+      txt:=    'unit=' &SF(unit, '(F9.3)')&', ';
+      txt:=txt&'phi='  &SF(phi,  '(F7.3)')&', ';
+      txt:=txt&'theta='&SF(theta,'(F7.3)');
+      WRITE 6 '      PP: print picture ('&txt&')';
+    ENDIF;
+
+    PP unit phi theta;
+
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE SaveMap thismap;
+    SM thismap;
+
+    IF debugging;
+      WRITE 6 '      SM: save map';
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE SelectRay x xp y yp tof dE dM dZ color;
+    VARIABLE txt 120;
+
+    SR x xp y yp tof dE dM dZ color;
+
+    {IF debugging;
+      txt:=    '( x='&SF(x,'(F6.3)')&'m,';
+      txt:=txt&' xp='&SF(xp,'(F6.3)')&'rad,';
+      txt:=txt&' y='&SF(y,'(F6.3)')&'m, ';
+      txt:=txt&'yp='&SF(yp,'(F6.3)')&'rad,';
+      WRITE 6  '      SR: select ray '&txt;
+      txt:=    'tof='&SF(tof,'(F6.3)')&'m, ';
+      txt:=txt&'dE='&SF(dE,'(F6.3)')&',   ';
+      txt:=txt&'dM='&SF(dM,'(F6.3)')&',  ';
+      txt:=txt&'dZ='&SF(dZ,'(F6.3)')&', ';
+      txt:=txt&COLORNAME(color)&')';
+      WRITE 6  '                     '&txt;
+    ENDIF;}
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE ShiftAxis dx dy;
+    VARIABLE txt 40;
+
+    IF (dx#0)+(dy#0);
+      SA -dx -dy; {shift of element axis is negative shift of optical axis}
+
+      IF debugging;
+        txt:=SF(dx*1000,'(F5.2)')&'mm, dy='&SF(dy*1000,'(F5.2)')&'mm';
+        WRITE 6 '      SA: shift axis by dx='&txt;
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE TiltAxis dx dy;
+    VARIABLE txt 40;
+
+    IF (dx#0)+(dy#0);
+      TA -dx -dy; {tilt of element axis is negative tilt of optical axis}
+
+      IF debugging;
+        txt:=SF(dx*1000,'(F5.2)')&'mrad, dy='&SF(dy*1000,'(F5.2)')&'mrad';
+        WRITE 6 '      TA: tilt axis by dx='&txt;
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE RotateAxis angle;
+    VARIABLE txt 40;
+
+    IF angle#0;
+      RA -angle; {rotation of element is negative rotation of optical axis}
+
+      IF debugging;
+        txt:=SF(angle,'(F5.2)')&'deg';
+        WRITE 6 '      RA: rotate axis by '&txt;
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE SetAxisDeviation element;
+    VARIABLE is_deviated 1;
+    variable i           1;
+
+    IF (element>first_element-1)*(element<last_element+1);
+      LFALSE is_deviated;
+      LOOP i 1 5;
+        is_deviated:=is_deviated+(element_deviation(element,i)#0);
+      ENDLOOP;
+
+      IF is_deviated;
+        IF debugging;
+          WRITE 6 '   SetAxisDeviation for '&ELEMENTNAME(element)&':';
+        ENDIF;
+        ShiftAxis  element_deviation(element,1) element_deviation(element,2);
+        TiltAxis   element_deviation(element,3) element_deviation(element,4);
+        RotateAxis element_deviation(element,5);
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE UnsetAxisDeviation element;
+    VARIABLE is_deviated 1;
+    variable i           1;
+
+    IF (element>first_element-1)*(element<last_element+1);
+      LFALSE is_deviated;
+      LOOP i 1 5;
+        is_deviated:=is_deviated+(element_deviation(element,i)#0);
+      ENDLOOP;
+
+      IF is_deviated;
+        IF debugging;
+          WRITE 6 '   UnsetAxisDeviation for '&ELEMENTNAME(element)&':';
+        ENDIF;
+        ShiftAxis  -element_deviation(element,1) -element_deviation(element,2);
+        TiltAxis   -element_deviation(element,3) -element_deviation(element,4);
+        RotateAxis -element_deviation(element,5);
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE UnityMap;
+    UM;
+    IF debugging; WRITE 6 '      UM: unity map'; ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE WienFilter radius1 radius2 length aperture;
+    VARIABLE txt 80;
+
+    WF radius1 radius2 length aperture;
+
+    IF debugging;
+      txt:=    '(r1='&SF(radius1,'(F6.3)')&'m,';
+      txt:=txt&' r2='&SF(radius2,'(F6.3)')&'m,';
+      txt:=txt&' len='&SF(length,'(F6.3)')&'m,';
+      txt:=txt&' apt='&SF(aperture,'(F6.3)')&'m)';
+      WRITE 6 '      WF: Wien filter '&txt;
+    ENDIF;
+  ENDPROCEDURE;
+
+
+{----------------------------------------------------}
+  PROCEDURE InitGeometry;
+    {drift lengths}
+ 
+    DL_startpoint_HEFC             := 1.920;       {      }
+    DL_HEFC_objectslits            := 0.810;       {      }
+    DL_objslits_analysingmagnet    := 0.315+1.710; {      }
+    DL_analysingmagnet_imageslits  := 0.410+0.410; {      }
+    DL_imageslits_imageFC          := 0.175;       {      }
+    DL_imageFC_ESA_A               := 1.155;       {      }
+    DL_ESA_A_ESA_B                 := 0.400;       {      }
+    DL_ESA_B_switchingmagnet       := 0.175;       {      }
+    DL_switchingmagnet_GSISLITS    := 0.640;       {      }
+    DL_GSISLITS_FOCTRIPLET         := 0.540;       {      }
+    DL_FOCTRIPLET_GASTARGET        := 4.990;       {      }
+
+    DL_gastarget_CSSM         := 0.370; {The correct distance is 0.37 m. Distance in case of Jet Gas target. Before was 0.44.}
+{    DL_gastarget_CSSM         := 0.625; Distance for extended H2 target}
+                                       {calculated from exit collimator center}
+    DL_CSSM_triplet           := 0.300;
+    DL_trip_slit1             := 0.147;
+    DL_slit1_FC1              := 0.379; {      }
+    DL_FC1_SEPWF1             := 0.260; {      }
+    DL_SEPWF1_SFCin           := 0.186;
+    DL_SFCin_shutter          := 3.212;
+    DL_shutter_slit2          := 0.190;
+    DL_slit2_singl1           := 0.222;
+    DL_singl1_dipole          := 1.412;
+    DL_dip_slitdip            := 0.077;
+    DL_slitdip_dipexit        := 0.138;
+    DL_dipexit_doubl          := 0.177;
+    DL_doubl_slit3            := 0.444; {  }
+    DL_slit3_SEPWF2           := 0.694; {  }
+    DL_sepWF2_slit4           := 0.432; {  }
+    DL_slit4_MCP              := 0.140; {  }
+    DL_MCP_Si                 := 0.440; { The MCP is exactly before it. }
+{    DL_Si_slit5               := 0.180; drift length as from Detlef's design }
+    DL_Si_slit5               := 0.730; { extended drift because of           }
+                                        { modification for 7Be half-life      }
+                                        { project                             }
+
+    {---------------------------------------------}
+    {      dimensions of slits and edges          }
+    {---------------------------------------------}
+    { array components: 1 horizontal plane left   }
+    {                   2 horizontal plane right  }
+    {                   3 vertical   plane bottom }
+    {                   4 vertical   plane top    }
+    {                   5 radius                  }
+    dim_objectslits := 0.002032&0.002032&0.035000&0.035000&1;
+                       {160/1000 inch full horizontal opening}
+    dim_imageslits  := 0.000762&0.000762&0.005080&0.005080&1;
+                       {60/1000 inch full horizontal opening}
+                       {400/1000 inch full vertical   opening}
+
+    dim_slit1   := 0.049&0.049&0.049&0.049&1;
+    dim_slit2   := 0.049&0.049&0.049&0.049&1;
+    dim_slit3   := 0.049&0.049&0.049&0.049&1;
+    dim_slit4   := 0.049&0.049&0.049&0.049&1;
+    dim_slit5   := 0.020&0.020&0.020&0.020&1;
+    dim_MCP     := 0.020&0.020&0.020&0.020&1; { to be adjusted }
+    dim_Si      := 0.030&0.030&0.030&0.030&1; {     }
+    dim_shutter := 0.049&0.049&0.049&0.049&1;
+    dim_slitdip := 0.049&0.049&0.049&0.049&1;
+    {SFCin   : special valve flange at entrance of side FC } 
+    {dipexit : exit flange of the dipole         } 
+    dim_SFCin  := 0.034&0.049&0.049&0.049&0.049;
+    dim_dipexit := 0.049&0.049&0.039&0.039&0.049;
+    {---------------------------------------------}
+  ENDPROCEDURE;  {InitGeometry}
+
+
+{----------------------------------------------------}
+{              elements of the separator             }
+{----------------------------------------------------}
+
+  PROCEDURE drift l start stop;  {4" pipes}
+    VARIABLE dl 1;
+
+    IF stop>0;
+      dl := stop-start;
+    ELSEIF 1=1;
+      dl := l-start;
+    ENDIF;
+    DriftLength dl;
+    chamber    := 0.049&0.049&0.049&0.049&0.049;
+    chamberlen := l;
+    name       := 'drift';
+  ENDPROCEDURE;  {drift}
+
+
+{----------------------------------------------------}
+  PROCEDURE FaradayCup diam;
+    IF showSlitsAndFCs;
+      DriftLength 0;
+      PoincareSection diam/2;
+    ENDIF;
+    chamber    := 0.049&0.049&0.049&0.049&0.049;
+    chamberlen := 0;
+    name       := 'Faraday cup';
+  ENDPROCEDURE;  {FaradayCup}
+
+
+{----------------------------------------------------}
+  PROCEDURE slit dim_slit;  {slits and edges}
+    VARIABLE x_min 1;
+    VARIABLE x_max 1;
+    VARIABLE y_min 1;
+    VARIABLE y_max 1;
+
+    VELGET dim_slit 1 x_min;
+    VELGET dim_slit 2 x_max;
+    VELGET dim_slit 3 y_min;
+    VELGET dim_slit 4 y_max;
+    IF showSlitsAndFCs;
+      PoincareSection (x_min+x_max+y_min+y_max)/4;
+    ENDIF;
+    chamber    := dim_slit;
+    chamberlen := 0;
+    name       := 'slit';
+  ENDPROCEDURE;  {slit}
+
+
+{----------------------------------------------------}
+  PROCEDURE slit_x dim_slit;  {slits and edges}
+    VARIABLE x_min 1;
+    VARIABLE x_max 1;
+
+    VELGET dim_slit 1 x_min;
+    VELGET dim_slit 2 x_max;
+    IF showSlitsAndFCs;
+      PoincareSection (x_min+x_max)/2;
+    ENDIF;
+    chamber    := dim_slit;
+    chamberlen := 0;
+    name       := 'slit';
+  ENDPROCEDURE;  {slit_x}
+
+
+{----------------------------------------------------}
+  PROCEDURE slit_y dim_slit;  {slits and edges}
+    VARIABLE y_min 1;
+    VARIABLE y_max 1;
+
+    VELGET dim_slit 3 y_min;
+    VELGET dim_slit 4 y_max;
+    IF showSlitsAndFCs;
+      PoincareSection (y_min+y_max)/2;
+    ENDIF;
+    chamber    := dim_slit;
+    chamberlen := 0;
+    name       := 'slit';
+  ENDPROCEDURE;  {slit_y}
+
+
+{----------------------------------------------------}
+  PROCEDURE ANALYSINGMAGNET_INx;
+    IF debugging;
+      WRITE 6 '***ANALYSINGMAGNET_IN';
+    ENDIF;
+
+    FringeFieldMode FF_MODE_1_ENTRANCE;
+    MagneticSector 0.644 90.0/2.0 0.03 0 0 0 0 0;
+    FringeFieldMode FF_MODE0_OFF;
+    MagneticSector 0.644 90.0/2.0 0.03 0 0 0 0 0;
+    FringeFieldMode fringefield_mode;
+    chamber    := 0.049&0.049&0.035&0.035&0.049;
+    chamberlen := 0;
+    name       := 'analysing magnet in';
+  ENDPROCEDURE;  {ANALYSINGMAGNET_IN}
+
+  PROCEDURE ANALYSINGMAGNET_IN;
+    VARIABLE eff_len 1;
+    VARIABLE angle   1;
+
+    IF debugging;
+      WRITE 6 '***ANALYSINGMAGNET_IN';
+    ENDIF;
+
+    eff_len := PI/180*90.0*1.27-element_start(EL_ANALYSINGMAGNET_IN);
+    IF element_stop(EL_ANALYSINGMAGNET_IN)>0;
+      eff_len := element_stop(EL_ANALYSINGMAGNET_IN)
+                -element_start(EL_ANALYSINGMAGNET_IN);
+    ENDIF;
+    angle := 180/PI*eff_len/1.27;
+
+{    MagneticSector 0.644 angle 0.03 0 0 0 0 0; }
+
+    DI 1.27 angle 0.0125 26.565 0 26.565 0;
+
+    chamber    := 0.049&0.049&0.035&0.035&0.049;
+    chamberlen := PI/180*52.5*1.27; {physical chamber}
+    name       := 'analysing magnet in';
+  ENDPROCEDURE;  {ANALYSINGMAGNET_IN}
+
+
+{----------------------------------------------------}
+  PROCEDURE ANALYSINGMAGNET_OUTx;
+    IF debugging;
+      WRITE 6 '***ANALYSINGMAGNET_OUT';
+    ENDIF;
+
+    FringeFieldMode FF_MODE0_OFF;
+    MagneticSector 0.644 90.0/2.0 0.03 0 0 0 0 0;
+    FringeFieldMode FF_MODE_2_EXIT;
+    MagneticSector 0.644 90.0/2.0 0.03 0 0 0 0 0;
+    FringeFieldMode fringefield_mode;
+    chamber    := 0.049&0.049&0.035&0.035&0.049;
+    chamberlen := 0;
+    name       := 'analysing magnet out';
+  ENDPROCEDURE;  {ANALYSINGMAGNET_OUT}
+
+{----------------------------------------------------}
+  PROCEDURE ANALYSINGMAGNET_OUT;
+    IF debugging;
+      WRITE 6 '***ANALYSINGMAGNET_OUT';
+    ENDIF;
+    chamber    := 1&1&1&1&1;
+    chamberlen := 0;
+    name       := 'currently not used';
+  ENDPROCEDURE;  {ANALYSINGMAGNET_OUT}
+
+
+{----------------------------------------------------}
+  PROCEDURE SWITCHINGMAGNET;
+    VARIABLE eff_len 1;
+    VARIABLE angle   1;
+
+    IF debugging;
+      WRITE 6 '***SWITCHINGMAGNET';
+    ENDIF;
+
+    eff_len := PI/180*40.0*0.894-element_start(EL_SWITCHINGMAGNET);
+    IF element_stop(EL_SWITCHINGMAGNET)>0;
+      eff_len := element_stop(EL_SWITCHINGMAGNET)
+                -element_start(EL_SWITCHINGMAGNET);
+    ENDIF;
+    angle := 180/PI*eff_len/0.894;
+
+    ChangeBending;
+    MagneticSector 0.894 angle 0.03 0 0 0 0 0;
+    ChangeBending;
+    chamber    := 0.049&0.049&0.035&0.035&0.049;
+    chamberlen := PI/180*40.0*0.894; {physical chamber}
+    name       := 'switching magnet';
+  ENDPROCEDURE;  {SWITCHINGMAGNET}
+
+{----------------------------------------------------}
+  PROCEDURE ESA_A;
+    VARIABLE eff_len 1;
+    VARIABLE angle   1;
+
+    IF debugging;
+      WRITE 6 '***ESA SECTOR';
+    ENDIF;
+
+    eff_len := PI/180*45.0*2.54-element_start(EL_ESA_A);
+    IF element_stop(EL_ESA_A)>0;
+      eff_len := element_stop(EL_ESA_A)-element_start(EL_ESA_A);
+    ENDIF;
+    angle := 180/PI*eff_len/2.54;
+
+{    ChangeBending; }
+    FringeFieldMode FF_MODE0_OFF;
+    ElectricSector 2.54 angle 0.0125 2 -3 4 -5 6;
+{    ChangeBending; }
+    FringeFieldMode fringefield_mode;
+    chamber    := 0.049&0.049&0.035&0.035&0.049;
+    chamberlen := PI/180*22.5*1.596; {physical chamber}
+    name       := 'ESA_A';
+  ENDPROCEDURE;  {ESA_A}
+
+{----------------------------------------------------}
+  PROCEDURE ESA_B;
+    VARIABLE eff_len 1;
+    VARIABLE angle   1;
+
+    IF debugging;
+      WRITE 6 '***ESA SECTOR';
+    ENDIF;
+
+    eff_len := PI/180*45.0*2.54-element_start(EL_ESA_B);
+    IF element_stop(EL_ESA_B)>0;
+      eff_len := element_stop(EL_ESA_B)
+                -element_start(EL_ESA_B);
+    ENDIF;
+    angle := 180/PI*eff_len/2.54;
+
+{    ChangeBending; }
+    FringeFieldMode FF_MODE0_OFF;
+    ElectricSector 2.54 angle 0.0125 2 -3 4 -5 6;
+    FringeFieldMode fringefield_mode;
+{    ChangeBending; }
+    chamber    := 0.049&0.049&0.035&0.035&0.049;
+    chamberlen := PI/180*22.5*1.596; {physical chamber}
+    name       := 'ESA_B';
+  ENDPROCEDURE;  {ESA_B}
+
+{----------------------------------------------------}
+  PROCEDURE FOCTRIPLET;  {focussing triplet}
+    IF debugging;
+      WRITE 6 '***FOCUSSING TRIPLET';
+    ENDIF;
+
+    MagneticQuadrupole 0.190 -B_foctrip_ex 0.053;
+    DriftLength        0.105;
+    MagneticQuadrupole 0.290 +B_foctrip_in 0.053;
+    DriftLength        0.105;
+    MagneticQuadrupole 0.190 -B_foctrip_ex 0.053;
+    chamber    := 0.049&0.049&0.049&0.049&0.049;
+    chamberlen := 2*0.190+0.290+2*0.105;
+    name       := 'focussing triplet';
+  ENDPROCEDURE; {TRIPLET}
+
+
+{----------------------------------------------------}
+  PROCEDURE GASTARGET;  {dummy at present}
+    IF debugging;
+      WRITE 6 '***GASTARGET: dummy at present!';
+    ENDIF;
+    IF element_start(EL_GASTARGET)=0;
+      PoincareSection  0.0030/2;
+    ENDIF;
+
+    IF element_stop(EL_GASTARGET)=0;
+      DriftLength .040-element_start(EL_GASTARGET);
+      PoincareSection  0.0058/2;
+    ELSEIF 1=1;
+      DriftLength element_stop(EL_GASTARGET)-element_start(EL_GASTARGET);
+    ENDIF;
+
+    chamber    := 1&1&1&1&1; {1&1&1&1&0.0058/2;}
+    chamberlen := .3040;
+    name       := 'gastarget';
+  ENDPROCEDURE;  {GASTARGET}
+
+
+{----------------------------------------------------}
+  PROCEDURE CSSM;  {Charge State Selection Magnet magnet}
+    VARIABLE eff_len 1;
+    VARIABLE angle   1;
+    VARIABLE p_b     1;
+    VARIABLE r_CSSM  1;
+    VARIABLE CSSM_bending  1;
+
+    r_CSSM := 0.476;
+    CSSM_bending := 30.;
+
+    IF debugging;
+      WRITE 6 '***CSSM (30deg magnet)';
+    ENDIF;
+
+    eff_len := PI/180*CSSM_bending*r_CSSM-element_start(EL_CSSM);
+    IF element_stop(EL_CSSM)>0;
+      eff_len := element_stop(EL_CSSM)
+                -element_start(EL_CSSM);
+    ENDIF;
+    angle := 180/PI*eff_len/r_CSSM;
+
+{    FringeFieldMode FF_MODE0_OFF; }
+{    ChangeBending;}
+    MagneticDipole r_CSSM angle 0.0320 7.5000 7.5000;
+{    ChangeBending;}
+{    FringeFieldMode fringefield_mode; }
+
+    p_b := sqrt(2*A*AMUMEV*W)*1E6/CLIGHT;
+    B_cssm := p_b/q/r_CSSM;
+{   B_cssm_exp := (317.33*SQRT(A*W)/q + 1.14)/1000;  }
+
+    chamber    := 0.049&0.049&0.030&0.030&1;
+    chamberlen := 2*0.212;
+    chamberlen := PI/180*CSSM_bending*r_CSSM;
+    name       := 'CSSM';
+  ENDPROCEDURE;  {Charge State Selection Magnet magnet}
+
+
+{----------------------------------------------------}
+  PROCEDURE TRIPLET;  {triplet sigmaphi}
+    IF debugging;
+      WRITE 6 '***TRIPLET sigma phi';
+    ENDIF;
+
+    MagneticQuadrupole 0.190 -B_trip_ex 0.053;
+    RA 0.92;
+    DriftLength        0.105;
+    MagneticQuadrupole 0.290 +B_trip_in 0.053;
+    RA 0.92;
+    DriftLength        0.105;
+    MagneticQuadrupole 0.190 -B_trip_ex 0.053;
+    RA 0.92;
+    chamber    := 0.049&0.049&0.049&0.049&0.049;
+    chamberlen := 2*0.190+0.290+2*0.105;
+    name       := 'triplet sigma phi';
+  ENDPROCEDURE; {TRIPLET}
+
+
+{----------------------------------------------------}
+  PROCEDURE SEPWF_DF_2;  {Wien filter danfysik II}
+    VARIABLE E_SEPWF2 1;
+    VARIABLE R_bend_SEPWF2 1;
+
+    {ChangeBending;}
+    IF debugging;
+      WRITE 6 '***SEPWF2 danfysik';
+    ENDIF;
+
+    E_SEPWF2 := U_SEPWF2/(2*0.035);
+    B_SEPWF2 := -E_SEPWF2*SQRT(A*AMUMEV/2/W)/CLIGHT;
+    R_bend_SEPWF2 := 2*W*1E6/q/E_SEPWF2;
+    B_SEPWF2_exp  := -(1.385*U_SEPWF2/1000*sqrt(A/W)+0.38)/1000;
+    FringeFieldMode FF_MODE0_OFF;
+    IF element_stop(EL_SEPWF2)=0;
+      WienFilter R_bend_SEPWF2
+                 R_bend_SEPWF2
+                 0.508-element_start(EL_SEPWF2)
+                 0.035;
+    ELSEIF 1=1;
+      WienFilter R_bend_SEPWF2
+                 R_bend_SEPWF2
+                 element_stop(EL_SEPWF2)-element_start(EL_SEPWF2)
+                 0.035;
+    ENDIF;
+    FringeFieldMode fringefield_mode;
+    chamber    := 0.035&0.035&0.049&0.049&0.999;
+    chamberlen := 0.508;
+    name       := 'separation WF 2 danfysik';
+    {ChangeBending;}
+  ENDPROCEDURE;  {SEPWF_DF_2}
+
+
+{----------------------------------------------------}
+  PROCEDURE SINGLET1;  {4" singlet sigmaphi}
+    IF debugging;
+      WRITE 6 '***SINGLET1 sigma phi';
+    ENDIF;
+
+    MagneticQuadrupole 0.150 B_singl1 0.053;
+    chamber    := 0.049&0.049&0.049&0.049&0.049;
+    chamberlen := 0.150;
+    name       := 'separator singlet 1 sigma phi';
+  ENDPROCEDURE;  {SINGLET1}
+
+
+{----------------------------------------------------}
+  PROCEDURE DIPOLE;  {60deg magnet}
+    VARIABLE eff_len 1;
+    VARIABLE angle   1;
+    VARIABLE p_b     1;
+
+    IF debugging;
+      WRITE 6 '***DIPOLE (60deg magnet)';
+    ENDIF;
+
+    eff_len := PI/180*60*0.367-element_start(EL_DIPOLE);
+    IF element_stop(EL_DIPOLE)>0;
+      eff_len := element_stop(EL_DIPOLE)
+                -element_start(EL_DIPOLE);
+    ENDIF;
+    angle := 180/PI*eff_len/0.367;
+
+{    ChangeBending; }
+    MagneticSector 0.367 angle 0.0375 0 0 0 0 0;
+{    ChangeBending; }
+
+    p_b := sqrt(2*A*AMUMEV*W)*1E6/CLIGHT;
+    B_dipole := p_b/q/0.367;
+    B_dipole_exp := (317.33*SQRT(A*W)/q + 1.14)/1000;
+
+    chamber    := 0.049&0.049&0.035&0.035&1;
+    chamberlen := 2*0.212;
+    chamberlen := PI/180*60*0.367;
+    name       := 'dipole 60deg';
+  ENDPROCEDURE;  {DIPOLE}
+
+
+{----------------------------------------------------}
+  PROCEDURE DOUBLET;  {4" doublet CalTech}
+    IF debugging;
+      WRITE 6 '***DOUBLET CalTech';
+    ENDIF;
+
+    MagneticQuadrupole 0.230 -B_SEPdoublet_1 0.0521;
+    DriftLength 0.175;
+    MagneticQuadrupole 0.230 +B_SEPdoublet_2 0.0521;
+    chamber    := 0.049&0.049&0.049&0.049&0.049;
+    chamberlen := 2*0.230+0.175;
+    name       := 'separator doublet CalTech';
+  ENDPROCEDURE;  {DOUBLET}
+
+
+{----------------------------------------------------}
+  PROCEDURE SINGLET2;  {3" singlet CalTech}
+    IF debugging;
+      WRITE 6 '***SINGLET2 CalTech';
+    ENDIF;
+
+    MagneticQuadrupole 0.180 -B_singl2 0.0385;
+    chamber    := 0.036&0.036&0.036&0.036&0.036;
+    chamberlen := 0.180;
+    name       := 'separator singlet 2 CalTech';
+  ENDPROCEDURE;  {SINGLET2}
+
+
+{---------------------------
+  PROCEDURE CALTECHWF;  {Wien filter CalTech}
+    VARIABLE E_SEPWF2 1;
+    VARIABLE R_bend_SEPWF2 1;
+
+    IF debugging;
+      WRITE 6 '***SEPWF2 CalTech (still!)';
+    ENDIF;
+
+    E_SEPWF2 := U_SEPWF2/(2*0.032);
+    B_SEPWF2 := q*E_SEPWF2*SQRT(A*AMUMEV/2/W)/CLIGHT; {I introduced the charge q multiplying the electric field. JGD}
+    R_bend_SEPWF2 := 2*W*1E6/q/E_SEPWF2;
+    B_SEPWF2_exp  := (1.239*U_SEPWF2/1000*sqrt(A/W)+1.37)/1000;
+    FringeFieldMode FF_MODE0_OFF;
+    WienFilter R_bend_SEPWF2 R_bend_SEPWF2 0.578 0.032;
+    FringeFieldMode fringefield_mode;
+    chamber    := 0.032&0.032&0.032&0.032&0.032;
+    chamberlen := 0.578;
+    name       := 'separator WF 2 CalTech (still!)';
+  ENDPROCEDURE;  {CALTECHWF}
+-------------------------}
+
+{----------------------------------------------------}
+  PROCEDURE SEPWF_DF_1;  {Wien filter danfysik I}
+    VARIABLE E_SEPWF1 1;
+    VARIABLE R_bend_B_SEPWF1 1;
+    VARIABLE R_bend_E_SEPWF1 1;
+
+    IF debugging;
+      WRITE 6 '***SEPWF1 Danfysik';
+    ENDIF;
+
+    {E_SEPWF1 := U_SEPWF1/(2*0.045); I don't know why it was considered before 0.045 if the aperture is 0.035!}
+    E_SEPWF1 := U_SEPWF1/(2*0.045);
+    B_SEPWF1 := -E_SEPWF1*SQRT(A*AMUMEV/2/W)/CLIGHT;
+    R_bend_E_SEPWF1 := 2*W*1E6/q/E_SEPWF1;
+    R_bend_B_SEPWF1 := 2*W*1E6/q/E_SEPWF1;
+    B_SEPWF1_exp  := -(1.239*U_SEPWF1/1000*sqrt(A/W)+1.37)/1000;
+    FringeFieldMode FF_MODE0_OFF;
+    IF element_stop(EL_SEPWF1)=0;
+      WienFilter R_bend_E_SEPWF1
+                 R_bend_B_SEPWF1
+                 0.521-element_start(EL_SEPWF1)
+                 0.045;
+    ELSEIF 1=1;
+      WienFilter R_bend_E_SEPWF1
+                 R_bend_B_SEPWF1
+                 element_stop(EL_SEPWF1)-element_start(EL_SEPWF1)
+                 0.045;
+    ENDIF;
+    FringeFieldMode fringefield_mode;
+    chamber    := 0.035&0.035&0.049&0.049&0.999;
+    chamberlen := 0.521;
+    name       := 'separator WF 1 Danfysik';
+
+  ENDPROCEDURE;  {SEPWF_DF_1}
+
+
+{----------------------------------------------------}
+  PROCEDURE slit5_FC4_ICTin; {slit+FC+ICT entrance}
+    IF debugging;
+      WRITE 6 '***slit5+FC4+ICTin';
+    ENDIF;
+
+    MagneticQuadrupole  0.394 0. 0.020; {ap. set to 18mm to see FC4 slits}
+    chamber    := 0.020&0.020&0.020&0.020&0.020;
+    chamberlen := 0.395;
+    name       := 'slit4 -> ICT';
+  ENDPROCEDURE;  {slit4_FC4_ICTin}
+
+
+{----------------------------------------------------}
+  PROCEDURE ICT;  {ionization chamber telescope}
+    IF debugging;
+      WRITE 6 '***ICT ionization chamber telescope';
+    ENDIF;
+
+    DriftLength  0.001; {entrance of the ICT}
+    {MagneticQuadrupole 0.700 0 0.050;
+    DriftLength  0.296;
+    PoincareSection  0.030;
+    chamber    := 0.050&0.050&0.050&0.050&0.050;
+    chamberlen := 0.700 + 0.296;}  {0.2m -> wall}
+    name       := 'ICT';
+  ENDPROCEDURE;  {ICT}
+
+
+{------------------------------------------------------------}
+{  procedures SaveMap_i, ApplyMap_i are used in              }
+{  procedure ProcessElement similar to SM and AM in cosy.fox }
+{------------------------------------------------------------}
+  PROCEDURE SaveMap_i i;  {saves momentary map to MP_i(i)}
+   VARIABLE k 1;
+
+    LOOP k 1 TWOND;
+      MAP_i(k,i) := MAP(k);
+    ENDLOOP;
+  ENDPROCEDURE;  {SaveMap_i}
+
+
+{-----------------------------------------------------------}
+  PROCEDURE ApplyMap_i i; {lets act MAP_i(i) on the momentary map}
+    VARIABLE k 1;
+
+    LOOP k 1 TWOND;
+      MSC(k) := MAP_i(k,i);
+    ENDLOOP;
+    LOCSET 0 0 0 0 0 0;
+    UPDATE 1 1 1;
+  ENDPROCEDURE;  {ApplyMap_i}
+
+
+{--------------------------------------------------------------------}
+  FUNCTION ReadNumVal default;
+{    VARIABLE default 1;}
+    VARIABLE readval 1;
+    VARIABLE ok      1;
+
+    LFALSE ok;
+    WHILE NOT(ok);
+      READ 5 readval;
+      IF TYPE(readval)#TYPE(0);
+        WRITE 6 'Enter a numerical value or press <ENTER> for default!';
+      ELSEIF 1=1;
+        LTRUE ok;
+      ENDIF;
+    ENDWHILE;
+
+    IF readval=0;
+      readval := default;
+      WRITE 6 'I will take the default.';
+    ENDIF;
+
+    ReadNumVal := readval;
+  ENDFUNCTION;  {ReadNumVal}
+
+
+{--------------------------------------------------------------------------}
+{                    ORDER OF THE SEPARTATOR ELEMENTS                      }
+{  - lets act the i'th element on the momentary map                        }
+{  - saves the new map into Map_i (i)                                      }
+{  - sets dim (i) to the size of the i'th element                          }
+{  for elem_no = INIT_FIRST_LAST_ELEMENT variables first_element and       }
+{                                        last_element are initialized      }
+{--------------------------------------------------------------------------}
+  PROCEDURE ProcessElement elem_no;
+    VARIABLE err     1;
+    VARIABLE errtxt 80;
+    
+    err:=    (elem_no<first_element)+(elem_no<PHYSICAL_FIRST_ELEMENT);
+    err:=err+(elem_no>last_element)+(elem_no>PHYSICAL_LAST_ELEMENT);
+    IF elem_no=INIT_FIRST_LAST_ELEMENT;
+      LFALSE err;
+    ENDIF;
+    IF err;
+      errtxt:=       '*** ERROR: unknown element number'&SF(elem_no,'(I4)');
+      errtxt:=errtxt&' in PROCEDURE ProcessElement';
+      WRITE 6 errtxt;
+      WRITE 6 '*** exiting...';
+      QUIT 1;
+    ENDIF;
+
+    FringeFieldMode fringefield_mode;
+
+    SetAxisDeviation elem_no;
+
+    IF elem_no=INIT_FIRST_LAST_ELEMENT;
+      PHYSICAL_FIRST_ELEMENT := EL_STARTPOINT;
+      PHYSICAL_LAST_ELEMENT  := EL_ICT;
+      first_element := PHYSICAL_FIRST_ELEMENT;
+      last_element  := PHYSICAL_LAST_ELEMENT;
+
+    ELSEIF elem_no=EL_STARTPOINT;
+      drift 0 0 0;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+{*** INSERT NEW ELEMENTS HERE ***
+    ELSEIF elem_no=XXX;
+      drift 0 0 0;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+********************************}
+      
+    ELSEIF elem_no=EL_DL_STARTPOINT_HEFC;
+      drift DL_startpoint_HEFC element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_HEFC;
+      FaradayCup .008;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_HEFC_OBJECTSLITS;
+      drift DL_HEFC_objectslits element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_OBJECTSLITS;
+      IF     projection_plane='x';
+        slit_x dim_objectslits;
+      ELSEIF projection_plane='y';
+        slit_y dim_objectslits;
+      ELSEIF 1=1;
+        slit dim_objectslits ;
+      ENDIF;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_OBJSLITS_ANALYSINGMAGNET;
+      drift DL_objslits_analysingmagnet element_start(elem_no) 
+                                           element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_ANALYSINGMAGNET_IN;
+      ANALYSINGMAGNET_IN;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_ANALYSINGMAGNET_OUT;
+      ANALYSINGMAGNET_OUT;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_ANALYSINGMAGNET_IMAGESLITS;
+      drift DL_analysingmagnet_imageslits element_start(elem_no)
+                                          element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_IMAGESLITS;
+      IF     projection_plane='x';
+        slit_x dim_imageslits;
+      ELSEIF projection_plane='y';
+        slit_y dim_imageslits;
+      ELSEIF 1=1;
+        slit dim_imageslits;
+      ENDIF;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_IMAGESLITS_IMAGEFC;
+      drift DL_imageslits_imageFC element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_IMAGEFC;
+      FaradayCup .008;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_IMAGEFC_ESA_A;
+      drift DL_imageFC_ESA_A element_start(elem_no)
+                             element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_ESA_A;
+      ESA_A;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_ESA_A_ESA_B;
+      drift DL_ESA_A_ESA_B element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_ESA_B;
+      ESA_B;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_ESA_B_switchingmagnet;
+      drift DL_ESA_B_switchingmagnet element_start(elem_no)
+                                     element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SWITCHINGMAGNET;
+      SWITCHINGMAGNET;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SWITCHINGMAGNET_GSISLITS;
+      drift DL_switchingmagnet_GSISLITS element_start(elem_no)
+                                          element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_GSISLITS;
+      slit dim_slit1;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_GSISLITS_FOCTRIPLET;
+      drift DL_GSISLITS_FOCTRIPLET element_start(elem_no)
+                                   element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_FOCTRIPLET;
+      FOCTRIPLET;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_FOCTRIPLET_GASTARGET;
+      drift DL_FOCTRIPLET_GASTARGET element_start(elem_no)
+                                      element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_GASTARGET;
+      GASTARGET;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_GASTARGET_CSSM;
+      drift DL_gastarget_CSSM element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_CSSM;
+      CSSM;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_CSSM_TRIP;
+      drift DL_CSSM_triplet element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_TRIPLET;
+      TRIPLET;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_TRIP_SLIT1;
+      drift DL_trip_slit1 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT1;
+      slit dim_slit1;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SLIT1_FC1;
+      drift DL_slit1_FC1 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_FC1;
+      FaradayCup .015;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_FC1_SEPWF1;
+      drift DL_FC1_SEPWF1 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SEPWF1;
+      SEPWF_DF_1;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SEPWF1_SFCIN;
+      drift DL_SEPWF1_SFCin element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT_SFCIN;
+      slit dim_SFCin          ; SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SFCIN_SHUTTER;
+      drift DL_SFCin_shutter element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SHUTTER;
+      slit dim_shutter;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SHUTTER_SLIT2;
+      drift DL_shutter_slit2 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT2;
+      slit dim_slit2;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SLIT2_SINGLET1;
+      drift DL_slit2_singl1 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SINGLET1;
+      SINGLET1;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SINGLET1_DIPOLE;
+      drift DL_singl1_dipole element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DIPOLE;
+      DIPOLE;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_DIPOLE_SLITDIPOLE;
+      drift DL_dip_slitdip element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT_DIPOLE;
+      slit dim_slitdip;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SLITDIPOLE_DIPOLEEXIT;
+      drift DL_slitdip_dipexit element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT_DIPOLE_EXIT;
+      slit dim_dipexit;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_DIPOLEEXIT_DOUBLET;
+      drift DL_dipexit_doubl element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DOUBLET;
+      DOUBLET;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_DOUBLET_SLIT3;
+      drift DL_doubl_slit3 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT3;
+      slit dim_slit3;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SLIT3_SEPWF2;
+      drift DL_slit3_SEPWF2 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SEPWF2;
+      SEPWF_DF_2;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SEPWF2_SLIT4;
+      drift DL_SEPWF2_slit4 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT4;
+      slit dim_slit4;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_SLIT4_MCP;
+      drift DL_slit4_MCP element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_MCP;
+      slit dim_MCP;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_DL_MCP_Si;
+      drift DL_MCP_Si element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_Si;
+      slit dim_Si;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+   ELSEIF elem_no=EL_DL_Si_SLIT5;
+      drift DL_Si_slit5 element_start(elem_no) element_stop(elem_no);
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+   ELSEIF elem_no=EL_SLIT5;
+      slit dim_slit5;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_SLIT5_FC4_ICTIN;
+      slit5_FC4_ICTin;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF elem_no=EL_ICT;
+      ICT;
+      SaveMap_i elem_no; dim(elem_no):=chamber;
+
+    ELSEIF (elem_no>last_element)+(elem_no>PHYSICAL_LAST_ELEMENT);
+      errtxt:=       '*** ERROR: unknown element number'&SF(elem_no,'(I4)');
+      errtxt:=errtxt&' in PROCEDURE ProcessElement';
+      WRITE 6 errtxt;
+      WRITE 6 '*** exiting...';
+      QUIT 1;
+
+    ENDIF;
+
+    UnsetAxisDeviation elem_no;
+
+  ENDPROCEDURE;  {ProcessElement}
+
+{--------------------------------------------------------------------}
+{ visualize the horizontal (PlotX) and vertical (PlotY)              }
+{ and laboratory (PlotLab) plane of the system including rays        }
+{--------------------------------------------------------------------}
+  PROCEDURE PlotX unit scale;
+    VARIABLE i 1;
+    VARIABLE k 1;
+VARIABLE PLOT 1500;
+
+    ClearRays;
+
+    IF N_ray_max>999;
+      WRITE 6 '***PlotX: Too many rays to visualize them all!';
+      WRITE 6 '          I will randomly select 100 rays ...';
+      LOOP i 1 100;
+        RERAN k;                           { -1 <  k <  1 }
+        k := INT((k+1)/2 * N_ray_max) + 1; {  1 <= k <= N_ray_max}
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                  Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+      ENDLOOP;
+    ELSEIF 1=1;
+      LOOP k 1 N_ray_max;
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                  Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+      ENDLOOP;
+    ENDIF;
+
+    PictureTYpe scale;
+    UnityMap;
+    projection_plane:='x';
+    BeginPicture;
+    LOOP i first_element last_element;
+      ProcessElement i;
+    ENDLOOP;
+    EndPicture;
+    PrintPicture unit 0 0;
+    projection_plane:='0';
+  ENDPROCEDURE;  {PlotX}
+
+
+{---------------------------------------------------------}
+  PROCEDURE PlotY unit scale;
+    VARIABLE i 1;   VARIABLE k 1;
+
+    ClearRays;
+
+    IF N_ray_max>1000;
+      WRITE 6 '***PlotY: Too many rays to visualize them all!';
+      WRITE 6 '          I will randomly select 99 rays ...';
+      LOOP i 1 100;
+        RERAN k;                           { -1 <  k <  1 }
+        k := INT((k+1)/2 * N_ray_max) + 1; {  1 <= k <= N_ray_max}
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                  Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+      ENDLOOP;
+    ELSEIF 1=1;
+      LOOP k 1 N_ray_max;
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                  Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+      ENDLOOP;
+    ENDIF;
+
+    PictureTYpe scale;
+    UnityMap;
+    projection_plane:='y';
+    BeginPicture;
+    LCE := 1;
+    LOOP i first_element last_element;
+      ProcessElement i;
+    ENDLOOP;
+    EndPicture;
+    PrintPicture unit 0 90;
+    projection_plane:='0';
+  ENDPROCEDURE;  {PlotY}
+
+
+{---------------------------------------------------------}
+  PROCEDURE PlotLab unit scale;
+    VARIABLE i 1;
+    VARIABLE k 1;
+
+    ClearRays;
+
+    IF N_ray_max>1000;
+      WRITE 6 '***PlotLab: Too many rays to visualize them all!';
+      WRITE 6 '            I will randomly select 99 rays ...';
+      LOOP i 1 100;
+        RERAN k;                           { -1 <  k <  1 }
+        k := INT((k+1)/2 * N_ray_max) + 1; {  1 <= k <= N_ray_max}
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                  Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+      ENDLOOP;
+    ELSEIF 1=1;
+      LOOP k 1 N_ray_max;
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                  Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+      ENDLOOP;
+    ENDIF;
+
+    PictureTYpe scale;
+    UnityMap;
+    projection_plane:='0';
+    BeginPicture;
+    LCE := 1;
+    LOOP i first_element last_element;
+      ProcessElement i;
+    ENDLOOP;
+    EndPicture;
+    PrintPicture unit phi_lab theta_lab;
+  ENDPROCEDURE;  {PlotLab}
+
+
+  FUNCTION SESSIONPREFIX dummy;
+    VARIABLE digits  1;
+    VARIABLE prefix 80;
+    VARIABLE format  7;
+
+    digits := INT(LOG(session_number)/LOG(10))+1;
+    prefix := SS('000', 1, 3-digits);
+    format := '(I'&SF(digits, '(I1)')&')';
+    prefix := prefix&SF(session_number, format);
+    prefix := session_name&prefix;
+    SESSIONPREFIX := prefix&'_';
+  ENDFUNCTION;
+
+
+{--------------------------------------------------------------------}
+{ determination of transmission by tracking ions through the system  }
+{ initial coordinates from the variable Ra(ion No, parameter)        }
+{--------------------------------------------------------------------}
+  PROCEDURE CalcTransmission;
+    VARIABLE beam_is_in    1;
+    VARIABLE beam_was_in   1;
+    VARIABLE x             1;
+    VARIABLE y             1;
+    VARIABLE x_min         1;
+    VARIABLE x_max         1;
+    VARIABLE y_min         1;
+    VARIABLE y_max         1;
+    VARIABLE r_max         1;
+    VARIABLE N_tot         1;
+    VARIABLE N_out         1;
+    VARIABLE N_in          1;
+    VARIABLE trans         1;
+    VARIABLE dummy        90;
+    VARIABLE txt          90;
+    VARIABLE txt1         40;
+    VARIABLE txt2         40;
+    VARIABLE txt3         40;
+    VARIABLE txt4         40;
+    VARIABLE txt5         40;
+    VARIABLE txt6         40;
+    VARIABLE txt7         40;
+    VARIABLE element       1;
+    VARIABLE element_out   1;
+    VARIABLE thisray       1;
+    VARIABLE markrows      1;
+    VARIABLE progress_step 1;
+    VARIABLE progress_mark 1;
+    VARIABLE progress_ind 50;
+    VARIABLE blanks       50;
+    VARIABLE i             1;
+    VARIABLE slit1_maxx    1;
+    VARIABLE slit1_maxy    1;
+    VARIABLE slit1_minx    1;
+    VARIABLE slit1_miny    1;
+    VARIABLE WF1exit_maxx  1;
+    VARIABLE WF1exit_maxy  1;
+    VARIABLE WF1exit_minx  1;
+    VARIABLE WF1exit_miny  1;
+    VARIABLE SFC_maxx      1;
+    VARIABLE SFC_maxy      1;
+    VARIABLE SFC_minx      1;
+    VARIABLE SFC_miny      1;
+    VARIABLE slit2_maxx    1;
+    VARIABLE slit2_maxy    1;
+    VARIABLE slit2_minx    1;
+    VARIABLE slit2_miny    1;
+    VARIABLE dipexit_maxx  1;
+    VARIABLE dipexit_maxy  1;
+    VARIABLE dipexit_minx  1;
+    VARIABLE dipexit_miny  1;
+    VARIABLE slit4_maxx    1;
+    VARIABLE slit4_maxy    1;
+    VARIABLE slit4_minx    1;
+    VARIABLE slit4_miny    1;
+    VARIABLE final_maxx    1;
+    VARIABLE final_maxy    1;
+    VARIABLE final_minx    1;
+    VARIABLE final_miny    1;
+
+    {------------------------------------------------}
+    FUNCTION FormattedNumber x;
+      VARIABLE fn 8;
+      
+      IF ABS(x)<1;
+        IF x<0;
+          fn := SF(-x, '(F8.5)');
+          fn := ' -'&SS(fn, 3, 8);
+        ELSEIF 1=1;
+          fn := SF( x, '(F8.5)');
+        ENDIF;
+      ELSEIF 1=1;
+{        fn := ' *******'; }
+        fn := ' 9.99999';
+      ENDIF;
+      FormattedNumber := fn;
+    ENDFUNCTION;
+    {------------------------------------------------}
+
+    {------------------------------------------------}
+    PROCEDURE CheckSize;
+      IF                 x<-x_min; LFALSE beam_is_in;
+      ELSEIF             x>+x_max; LFALSE beam_is_in;
+      ELSEIF             y<-y_min; LFALSE beam_is_in;
+      ELSEIF             y>+y_max; LFALSE beam_is_in;
+      ELSEIF SQRT(x^2+y^2)>+r_max; LFALSE beam_is_in;
+      ENDIF;
+    ENDPROCEDURE;  {CheckSize}
+    {------------------------------------------------}
+
+    WRITE 6 ' tracking'&SF(N_ray_max,'(I7)')&' ions...';
+    OPENF 15 SESSIONPREFIX(1)&'untransmitted_ions' 'unknown';
+    OPENF 16 SESSIONPREFIX(1)&'plane' 'unknown';
+    OPENF 17 SESSIONPREFIX(1)&'transmitted_ions' 'unknown';
+
+    {-------------------------------------------------------}     
+    { loop setting the variable MAP_i(i) and dim(i)         }     
+    { for map and vacuum chamber size of the i'th element   }
+    {-------------------------------------------------------}     
+    LOOP element first_element last_element;
+      UnityMap;
+      ProcessElement element;
+    ENDLOOP;
+
+    {------------------------------------------------------------}     
+    { loop over the ions stored in Ra(ion-no, property)          }
+    {------------------------------------------------------------}     
+    N_tot := 0;
+    N_out := 0;
+
+    slit1_maxx   := -100000;
+    slit1_maxy   := -100000;
+    slit1_minx   :=  100000;
+    slit1_miny   :=  100000;
+    WF1exit_maxx := -100000;
+    WF1exit_maxy := -100000;
+    WF1exit_minx :=  100000;
+    WF1exit_miny :=  100000;
+    SFC_maxx     := -100000;
+    SFC_maxy     := -100000;
+    SFC_minx     :=  100000;
+    SFC_miny     :=  100000;
+    slit2_maxx   := -100000;
+    slit2_maxy   := -100000;
+    slit2_minx   :=  100000;
+    slit2_miny   :=  100000;
+    dipexit_maxx := -100000;
+    dipexit_maxy := -100000;
+    dipexit_minx :=  100000;
+    dipexit_miny :=  100000;
+    slit4_maxx   := -100000;
+    slit4_maxy   := -100000;
+    slit4_minx   :=  100000;
+    slit4_miny   :=  100000;
+    final_maxx   := -100000;
+    final_maxy   := -100000;
+    final_minx   :=  100000;
+    final_miny   :=  100000;
+
+    markrows := 15;
+
+    progress_step := N_ray_max/markrows;
+    progress_mark := 0;
+    progress_ind  := '**************************************************';
+    blanks        := '                                                  ';
+
+    LOOP thisray 1 N_ray_max;
+{      WRITE 6 'tracking ion '&SF(thisray, '(I4)');  }
+      UnityMap;
+      ClearRays;
+      SelectRay Ra(thisray,1) Ra(thisray,2) Ra(thisray,3)
+                Ra(thisray,4) Ra(thisray,5) Ra(thisray,6)
+                Ra(thisray,7) Ra(thisray,8) Ra(thisray,9);
+      VELGET RAY(1) 2 x; {store 2nd component of vector RAY(1) in x}
+      VELGET RAY(3) 2 y; {store 2nd component of vector RAY(3) in y}
+      N_tot := N_tot + 1;
+      LTRUE beam_is_in;
+      LTRUE beam_was_in;
+      element := first_element;
+      {---------------------------------------------------------------}
+      { tracking ion through elements first_element ..last_element    }
+      {  for each element :                                           }
+      {      1 ion coordinates x,y are checked at entrance of the     }
+      {        i`th element (first call of 'CheckSize')               }
+      {      2 apply map of the i'th element on the momentary map and }
+      {        ray coordinates                                        }
+      {      3 ion coordinates x,y are checked at exit of the         }
+      {        i`th element (second call of 'CheckSize')              }
+      {      4 If coordinates larger than chamber size (x_min,...)    }
+      {        => N_out = N_out+1 and tracking for this ion stopped   }
+      {        at i'th element                                        }
+      {---------------------------------------------------------------}
+{*****
+      WHILE beam_is_in;
+*****}
+      LOOP element first_element last_element;
+        VELGET dim(element) 1 x_min;
+        VELGET dim(element) 2 x_max;
+        VELGET dim(element) 3 y_min;
+        VELGET dim(element) 4 y_max;
+        VELGET dim(element) 5 r_max;
+        CheckSize;
+        IF NOT(beam_is_in)*(beam_was_in);
+{          IF N_ray_max<500;}
+            txt:=COLORNAME(Ra(thisray, 9));
+            txt:=SF(thisray, '(I4)')&': '&txt&SS('   ', 1, 6-LENGTH(txt));
+            WRITE 6 txt&' out before '&ELEMENTNAME(element);
+            element_out := element;
+            LFALSE beam_was_in;
+{          ENDIF;}
+        ENDIF;
+{********************}
+        ApplyMap_i element;
+        VELGET RAY(1) 2 x;
+        VELGET RAY(3) 2 y;
+        IF element=EL_SLIT1;
+          IF x<slit1_minx;   slit1_minx  :=x; ENDIF;
+          IF y<slit1_miny;   slit1_miny  :=y; ENDIF;
+          IF x>slit1_maxx;   slit1_maxx  :=x; ENDIF;
+          IF y>slit1_maxy;   slit1_maxy  :=y; ENDIF;
+        ENDIF;
+        IF element=EL_SLIT2;
+          IF x<slit2_minx;   slit2_minx  :=x; ENDIF;
+          IF y<slit2_miny;   slit2_miny  :=y; ENDIF;
+          IF x>slit2_maxx;   slit2_maxx  :=x; ENDIF;
+          IF y>slit2_maxy;   slit2_maxy  :=y; ENDIF;
+        ENDIF;
+        IF element=EL_SLIT4;
+          IF x<slit4_minx;   slit4_minx  :=x; ENDIF;
+          IF y<slit4_miny;   slit4_miny  :=y; ENDIF;
+          IF x>slit4_maxx;   slit4_maxx  :=x; ENDIF;
+          IF y>slit4_maxy;   slit4_maxy  :=y; ENDIF;
+        ENDIF;
+        IF element=EL_SHUTTER;
+          IF x<SFC_minx;     SFC_minx    :=x; ENDIF;
+          IF y<SFC_miny;     SFC_miny    :=y; ENDIF;
+          IF x>SFC_maxx;     SFC_maxx    :=x; ENDIF;
+          IF y>SFC_maxy;     SFC_maxy    :=y; ENDIF;
+        ENDIF;
+        IF element=EL_SLIT_DIPOLE_EXIT;
+          IF x<dipexit_minx; dipexit_minx:=x; ENDIF;
+          IF y<dipexit_miny; dipexit_miny:=y; ENDIF;
+          IF x>dipexit_maxx; dipexit_maxx:=x; ENDIF;
+          IF y>dipexit_maxy; dipexit_maxy:=y; ENDIF;
+        ENDIF;
+        IF element=EL_SEPWF1;
+          IF x<WF1exit_minx; WF1exit_minx:=x; ENDIF;
+          IF y<WF1exit_miny; WF1exit_miny:=y; ENDIF;
+          IF x>WF1exit_maxx; WF1exit_maxx:=x; ENDIF;
+          IF y>WF1exit_maxy; WF1exit_maxy:=y; ENDIF;
+        ENDIF;
+        IF element=last_element;
+          IF x<final_minx;   final_minx  :=x; ENDIF;
+          IF y<final_miny;   final_miny  :=y; ENDIF;
+          IF x>final_maxx;   final_maxx  :=x; ENDIF;
+          IF y>final_maxy;   final_maxy  :=y; ENDIF;
+        ENDIF;
+{*****
+        IF element=EL_SINGLET1;
+           WRITE 16 SF(x,'(F7.5)')&' '&SF(y,'(F7.5)');
+        ENDIF;
+*****}
+        IF beam_is_in;
+          CheckSize;
+          IF NOT(beam_is_in)*(beam_was_in);
+{            IF N_ray_max<500;}
+              txt:=COLORNAME(Ra(thisray, 9));
+              txt:=SF(thisray, '(I4)')&': '&txt&SS('   ', 1, 6-LENGTH(txt));
+              WRITE 6 txt&' out after  '&ELEMENTNAME(element);
+              element_out := element;
+              LFALSE beam_was_in;
+{             ENDIF;}
+          ENDIF;
+        ENDIF;
+{*****
+        IF NOT(beam_is_in);
+          N_out := N_out+1;
+        ENDIF;
+*****}
+      IF (element=last_element);
+      { write to file <prefix>_plane ion parameters at end of tracking }
+      dummy:=SF(thisray, '(I7)');
+      VELGET RAY(1) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(2) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(3) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(4) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(5) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(6) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(7) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(8) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      x := Ra(thisray, 9);
+      dummy := dummy&SF(x, '(I2)');
+      WRITE 16 dummy;
+      ENDIF;
+        IF (element=last_element)*(beam_is_in);
+          txt := SF(thisray,'(I7)')&' ';
+          txt := txt&SF(Ra(thisray,1),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,2),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,3),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,4),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,5),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,6),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,7),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,8),'(F7.5)')&' ';
+          txt := txt&SF(Ra(thisray,9),'(I1)');
+          WRITE 17 txt;
+{*****
+          LFALSE beam_is_in;
+*****}
+        ENDIF;
+{*****
+        element := element + 1;
+      ENDWHILE;
+*****}
+      ENDLOOP;
+
+      IF N_ray_max>markrows;
+        IF thisray>progress_step*progress_mark;
+          trans := (N_tot-N_out)/N_tot*100;
+          txt:=SS(progress_ind, 1, markrows-progress_mark);
+          txt:=txt&SS(blanks, 1, progress_mark);
+          txt:=txt&SF((N_tot-N_out)/N_tot*100, '(F6.1)')&'%';
+          WRITE 6 SF(N_ray_max-thisray, '(I6)')&' '&txt;
+          progress_mark := progress_mark+1;
+        ENDIF;
+      ELSEIF 1=1;
+          txt:=SS(progress_ind, 1, N_ray_max-thisray+1);
+          txt:=txt&SS(blanks, 1, progress_mark);
+          txt:=txt&SF((N_tot-N_out)/N_tot*100, '(F6.1)')&'%';
+          WRITE 6 SF(N_ray_max-thisray+1, '(I6)')&' '&txt;
+      ENDIF;
+
+      IF NOT( beam_is_in );
+        N_out := N_out+1;
+        txt := SF(thisray,'(I7)')&' ';
+        txt := txt&SF(Ra(thisray,1),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,2),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,3),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,4),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,5),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,6),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,7),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,8),'(F7.5)')&' ';
+        txt := txt&SF(Ra(thisray,9),'(I1)')&'   ';
+        txt := txt&ELEMENTNAME(element_out);
+        WRITE 15 txt;
+        element_out := -1;
+      ENDIF;
+
+{******    WRITE 16 SF(x, '(F7.5)')&' '&SF(y, '(F7.5)');  ******}
+    ENDLOOP;
+
+    N_in  := N_tot - N_out;
+    trans := N_in/N_tot*100;
+    WRITE 6 '  total   transmitted   lost   transmission [%]   ';
+    txt :=     SF(N_tot,'(I7)')&'  '&SF(N_in, '(I12)')&'  ';
+    txt := txt&SF(N_out,'(I5)')&'  '&SF(trans,'(F17.1)')&'  ';
+    WRITE 6 txt;
+    WRITE 15 '#'; WRITE 17 '#';
+    CLOSEF 15;   CLOSEF 17;
+    WRITE 6
+    ''
+    '*** I wrote ray data of transmitted ions to file'
+    '*** '&SESSIONPREFIX(1)&'transmitted_ions !'
+    '';
+    CLOSEF 16;
+    session_number := session_number+1;
+
+    WRITE 6 'beam position in mm at';
+    txt :=     '         FC1 slt: WF1 exit: SFCshutr:  FC2 slt:';
+    txt := txt&'  dip. ex:  FC4 slt:    final:';
+    WRITE 6 txt;
+    txt1 := 'xmin = '&SF(  slit1_minx*1000, '(F10.1)');
+    txt2 :=           SF(WF1exit_minx*1000, '(F10.1)');
+    txt3 :=           SF(    SFC_minx*1000, '(F10.1)');
+    txt4 :=           SF(  slit2_minx*1000, '(F10.1)');
+    txt5 :=           SF(dipexit_minx*1000, '(F10.1)');
+    txt6 :=           SF(  slit4_minx*1000, '(F10.1)');
+    txt7 :=           SF(  final_minx*1000, '(F10.1)');
+    WRITE 6 txt1&txt2&txt3&txt4&txt5&txt6&txt7;
+    txt1 := 'xmax = '&SF(  slit1_maxx*1000, '(F10.1)');
+    txt2 :=           SF(WF1exit_maxx*1000, '(F10.1)');
+    txt3 :=           SF(    SFC_maxx*1000, '(F10.1)');
+    txt4 :=           SF(  slit2_maxx*1000, '(F10.1)');
+    txt5 :=           SF(dipexit_maxx*1000, '(F10.1)');
+    txt6 :=           SF(  slit4_maxx*1000, '(F10.1)');
+    txt7 :=           SF(  final_maxx*1000, '(F10.1)');
+    WRITE 6 txt1&txt2&txt3&txt4&txt5&txt6&txt7;
+    txt1 := 'ymin = '&SF(  slit1_miny*1000, '(F10.1)');
+    txt2 :=           SF(WF1exit_miny*1000, '(F10.1)');
+    txt3 :=           SF(    SFC_miny*1000, '(F10.1)');
+    txt4 :=           SF(  slit2_miny*1000, '(F10.1)');
+    txt5 :=           SF(dipexit_miny*1000, '(F10.1)');
+    txt6 :=           SF(  slit4_miny*1000, '(F10.1)');
+    txt7 :=           SF(  final_miny*1000, '(F10.1)');
+    WRITE 6 txt1&txt2&txt3&txt4&txt5&txt6&txt7;
+    txt1 := 'ymax = '&SF(  slit1_maxy*1000, '(F10.1)');
+    txt2 :=           SF(WF1exit_maxy*1000, '(F10.1)');
+    txt3 :=           SF(    SFC_maxy*1000, '(F10.1)');
+    txt4 :=           SF(  slit2_maxy*1000, '(F10.1)');
+    txt5 :=           SF(dipexit_maxy*1000, '(F10.1)');
+    txt6 :=           SF(  slit4_maxy*1000, '(F10.1)');
+    txt7 :=           SF(  final_maxy*1000, '(F10.1)');
+    WRITE 6 txt1&txt2&txt3&txt4&txt5&txt6&txt7;
+
+  ENDPROCEDURE;  {CalcTransmission}
+
+
+{--------------------------------------------------------------------}
+  PROCEDURE CalcLeakyBeam;
+    VARIABLE beam_is_in 1;
+    VARIABLE x          1;
+    VARIABLE y          1;
+    VARIABLE x_min      1;
+    VARIABLE x_max      1;
+    VARIABLE y_min      1;
+    VARIABLE y_max      1;
+    VARIABLE r_max      1;
+    VARIABLE N_tot      1;
+    VARIABLE N_out      1;
+    VARIABLE N_in       1;
+    VARIABLE N_q_in     1;
+    VARIABLE trans      1;
+    VARIABLE dummy     80;
+    VARIABLE i          1;
+    VARIABLE k          1;
+    VARIABLE dm         1;
+    VARIABLE colour     1;
+    VARIABLE No_rays    1;
+    VARIABLE x_s        1;
+    VARIABLE th_x_s     1;
+    VARIABLE y_s        1;
+    VARIABLE th_y_s     1;
+    VARIABLE vertex     1;
+    VARIABLE dE_s       1;
+    VARIABLE q_s        1;
+
+    {------------------------------------------------}
+    PROCEDURE CheckSize;
+      IF                 x<-x_min; LFALSE beam_is_in;
+      ELSEIF             x>+x_max; LFALSE beam_is_in;
+      ELSEIF             y<-y_min; LFALSE beam_is_in;
+      ELSEIF             y>+y_max; LFALSE beam_is_in;
+      ELSEIF SQRT(x^2+y^2)>+r_max; LFALSE beam_is_in;
+      ENDIF;
+    ENDPROCEDURE;  {CheckSize}
+    {------------------------------------------------}
+
+    WRITE 6
+    'This routine is still unchanged from Detlef''s septune10 code.'
+    'It''s a lengthy operation.'
+    'Are you sure (99=yes, <ENTER>=no)?';
+    tmp1 := '';
+    WHILE TYPE(tmp1)#TYPE(1);
+      READ 5 tmp1;
+    ENDWHILE;
+
+
+IF tmp1=99;
+    WRITE 6 ' tracking '&' ions ...';
+    OPENF 15 'r_in' 'unknown';
+
+    {-------------------------------------------------------}     
+    { loop setting the variable MAP_i(i) and dim(i)         }     
+    { for map and vacuum chamber size of the i'th element   }
+    {-------------------------------------------------------}
+    LOOP i first_element last_element;
+      UnityMap;
+      ProcessElement i;
+    ENDLOOP;
+    UnityMap;
+    LOOP i first_element last_element;
+      ApplyMap_i i;
+    ENDLOOP;
+    SaveMap MAP_dummy;
+
+    {------------------------------------------------------------}     
+    { loop over the ions stored in Ra(ion No,parameter)          }
+    {------------------------------------------------------------}     
+    N_tot  := 0;
+    N_out  := 0;
+    N_q_in := 0;
+
+    dm      := 3/4 -1;
+    colour  := RED;
+    No_rays := 0;
+    k       := 1;
+
+    LOOP q_s 6 1 -1;
+      WRITE 6 'q_s = '&SF(q_s,'(I1)')&' ';
+      LOOP x_s -0.008 +0.008 0.001;
+        WRITE 6 'x = '&SF(x_s,'(F8.4)')&' ';
+        LOOP y_s -0.000 +0.000 0.001;
+          LOOP th_x_s -0.050 +0.050 0.002;
+            LOOP th_y_s -0.000 +0.000 0.002;
+              LOOP dE_s 0.34 -0.900 -0.01;
+
+{
+  LOOP q_s 6 1 -1;
+  WRITE 6 'q_s = '&SF(q_s,'(I1)')&' ';
+  LOOP x_s -0.002 +0.002 0.001;
+  LOOP y_s -0.000 +0.000 0.001;
+  LOOP th_x_s -0.040 +0.040 0.040;
+  LOOP th_y_s -0.040 +0.040 0.040;
+  LOOP dE_s 0.340 -0.100 -0.100;
+}
+                Ra(k,1) := x_s;
+                Ra(k,2) := th_x_s;
+                Ra(k,3) := y_s;
+                Ra(k,4) := th_y_s;
+                Ra(k,5) := 0.;
+                Ra(k,6) := dE_s;
+                Ra(k,7) := dm;
+                Ra(k,8) := q_s/q -1;
+                Ra(k,9) := colour;
+                N_tot := N_tot + 1;
+                LTRUE beam_is_in;
+
+                {-----------------------------}
+                { first check of transmission }
+                {-----------------------------}
+                UnityMap;
+                ClearRays;
+                SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                          Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+                ApplyMap MAP_dummy;
+                i := last_element;
+                VELGET dim(i) 1 x_min;
+                VELGET dim(i) 2 x_max;
+                VELGET dim(i) 3 y_min;
+                VELGET dim(i) 4 y_max;
+                VELGET dim(i) 5 r_max;
+                VELGET RAY(1) 2 x;
+                VELGET RAY(3) 2 y;
+
+                CheckSize;
+                IF NOT(beam_is_in);
+                  N_out := N_out+1;
+                ELSEIF 1=1;
+                  {--------------------------------}
+                  { detailed check of transmission }
+                  {--------------------------------}
+                  i := first_element;
+                  UnityMap;
+                  ClearRays;
+                  SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5) 
+                            Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+                  VELGET RAY(1) 2 x;
+                  VELGET RAY(3) 2 y;
+                  WHILE beam_is_in;
+                    VELGET dim(i) 1 x_min;
+                    VELGET dim(i) 2 x_max;
+                    VELGET dim(i) 3 y_min;
+                    VELGET dim(i) 4 y_max;
+                    VELGET dim(i) 5 r_max;
+
+                    CheckSize;
+                    ApplyMap_i i;
+                    VELGET RAY(1) 2 x;
+                    VELGET RAY(3) 2 y;
+                    CheckSize;
+                    IF NOT(beam_is_in);
+                      N_out := N_out+1;
+                    ENDIF;
+                    IF i=last_element;
+                      dummy := SF(k,'(I4)')&' ';
+                      dummy := dummy&SF(Ra(k,1),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,2),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,3),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,4),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,5),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,6),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,7),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,8),'(F7.5)')&' ';
+                      dummy := dummy&SF(Ra(k,9),'(I1)');
+                      WRITE 15 dummy;
+
+                      LFALSE beam_is_in;
+                      N_q_in := N_q_in + 1;
+                    ENDIF;
+
+                    i := i + 1;
+                  ENDWHILE;
+                  {--------------------------------}
+                  { end of detailed check          }
+                  {--------------------------------}
+                ENDIF;  {beam_is_in}
+              ENDLOOP;
+            ENDLOOP;
+          ENDLOOP;
+        ENDLOOP;
+      ENDLOOP;
+
+      WRITE 6 'N_q_in = '&SF(N_q_in,'(I10)')&' ';
+      N_q_in := 0;
+    ENDLOOP;
+
+    N_in  := N_tot - N_out;
+    trans := N_in/N_tot*100;
+    WRITE 6 '       total transmitted        lost transmission [%]';
+    dummy := SF(N_tot,'(I12)')&SF(N_in,'(I12)');
+    dummy := dummy&SF(N_out,'(I12)')&SF(trans,'(F17.1)');
+    WRITE 6 dummy;
+    WRITE 15 '#';
+    CLOSEF 15;
+ENDIF;
+  ENDPROCEDURE;  {CalcLeakyBeam}
+
+
+{--------------------------------------------------------------------}
+  FUNCTION theta_max E_lab;
+    VARIABLE E_cm 1;
+    VARIABLE x    1;
+
+    E_cm := E_lab/3; {lab->cm}
+    x :=  -1.90988455*E_cm^1+0.57104716*E_cm^2;
+    x := x-0.12022408*E_cm^3+0.00917591*E_cm^4;
+    theta_max := 17.77186648+40.63035411*EXP(x);
+  ENDFUNCTION;  {theta_max}
+
+
+{--------------------------------------------------------------------}
+  FUNCTION dE_max E_lab;
+    VARIABLE E_cm 1;
+    VARIABLE x    1;
+
+    E_cm := E_lab/3; {lab->cm}
+    x :=  -1.92655644*E_cm^1+0.57603659*E_cm^2;
+    x := x-0.12099434*E_cm^3+0.00911112*E_cm^4;
+    dE_max := 3.59379189+8.39111294*EXP(x);
+  ENDFUNCTION;  {dE_max}
+
+
+{*********************************************************}
+{                   INPUT  PROCEDURES                     }
+{*********************************************************}
+  PROCEDURE init;
+    VARIABLE default  32;
+    VARIABLE inputline 1;
+
+    {--------- mass, energy, charge state, ... -------------}
+    WRITE 6 '------------------------------------------';
+    A:='';
+    WHILE TYPE(A)#TYPE(1);
+      WRITE 6 ' enter ion mass   [u]   (default is 16.0)';
+      READ 5 A;
+      IF TYPE(A)#TYPE(1);
+        WRITE 6 ' enter a numerical value >0 or press <ENTER> for default!';
+      ENDIF;
+    ENDWHILE;
+    IF A=0;
+      A:=16;
+    ENDIF;
+
+    W:='';
+    WHILE TYPE(W)#TYPE(1);
+      WRITE 6 ' enter ion energy [MeV] (default is  2.1)';
+      READ  5 W;
+      IF TYPE(W)#TYPE(1);
+        WRITE 6 ' enter a numerical value >0 or press <ENTER> for default!';
+      ENDIF;
+    ENDWHILE;
+    IF W=0;
+      W:=2.1;
+    ENDIF;
+
+    default:=1;
+    IF (A>15.5)*(A<16.5); {assume oxygen ions}
+      IF     W>11.0;  {these are valid...       }
+        default:=6;
+      ELSEIF W>6.3;   {... for a He gas stripper}
+        default:=5;
+      ELSEIF 1=1;
+        default:=3;
+      ENDIF;
+    ENDIF;
+    q:='';
+    WHILE TYPE(q)#TYPE(1);
+      WRITE 6 ' enter ion charge [e]   (default is  '&SF(default,'(F3.1)')&')';
+      READ  5 q;
+      IF TYPE(q)#TYPE(1);
+        WRITE 6 ' enter a numerical value >0 or press <ENTER> for default!';
+      ENDIF;
+    ENDWHILE;   
+    IF q=0;
+      q:=default;
+    ENDIF;
+
+{***
+    WRITE 6 '  enter fringe field mode (0,1,2,3)';
+    READ  5    fringefield_mode;
+***}
+    fringefield_mode := FF_MODE2_SYMPLECTIC_SCALING ;
+{    fringefield_mode := FF_MODE0_OFF ;}
+
+    WRITE 6 '------------------------------------------';
+    WRITE 6 ' A ='&SF(A,'(F7.3)')&' u';
+    WRITE 6 ' W ='&SF(W,'(F7.3)')&' MeV';
+    WRITE 6 ' q ='&SF(q,'(F7.3)')&' e';
+    WRITE 6 '------------------------------------------';
+{***
+    WRITE 6 ' press <ENTER> to continue...';
+    READ  5 inputline;
+***}
+  ENDPROCEDURE;  {init}
+
+
+{----------------------------------------------------}
+  PROCEDURE InitFields;  {set initial fields}
+    VARIABLE i 1;
+
+    {incident beam}
+    U_PURWF1         := 30E3;
+    U_PURWF2         := 30E3;
+    B_HEdoublet_1    :=  .045530; {qdhe1}
+    B_HEdoublet_2    :=  .042386; {qdhe2}
+    B_DTLsinglet1    := -.002500; {bsing1}
+    B_DTLdoublet_1   :=  .091860; {qdch1}
+    B_DTLdoublet_2   :=  .127915; {qdch2}
+    B_DTLsinglet2    :=  .051061;
+    B_DTLsinglet2old :=  .051061;
+    B_defocdoublet_1 :=  .146391;
+    B_defocdoublet_2 :=  .178884;
+
+    {separator}
+    B_trip_ex        := .161596;
+    B_trip_in        := .182550;
+    U_SEPWF1         := 60E3;
+    B_singl1         := .050696;
+    B_SEPdoublet_1   := .121325;
+    B_SEPdoublet_2   := .131364;
+    B_singl2         := .0000;
+    U_SEPWF2         := 40E3;
+
+
+    {field limits}
+    LIMIT_B_HEdoublet_1    := .5;
+    LIMIT_B_HEdoublet_2    := .5;
+    LIMIT_B_DTLsinglet1    := .5;
+    LIMIT_B_DTLsinglet2    := .28;
+    LIMIT_B_DTLdoublet_1   := .5;
+    LIMIT_B_DTLdoublet_2   := .5;
+    LIMIT_B_defocdoublet_1 := .5;
+    LIMIT_B_defocdoublet_2 := .5;
+
+    LIMIT_B_trip_ex        := .3;
+    LIMIT_B_trip_in        := .3;
+    LIMIT_B_singl1         := .28;
+    LIMIT_B_SEPdoublet_1   := .3;
+    LIMIT_B_SEPdoublet_2   := .3;
+    LIMIT_B_singl2         := .2;
+
+    LIMIT_B_dipole         :=1.35;
+
+    WRITE 6 '' '     initializing, please wait ...' '';
+    UnityMap;
+    LOOP i first_element last_element;
+      element_start(i) := 0;
+      element_stop(i)  := 0;
+      ProcessElement i;
+    ENDLOOP;
+  ENDPROCEDURE;  {InitFields}
+
+
+{---------------------------------------------------}
+  PROCEDURE ReadFields; {from file}
+    VARIABLE dummy 80;
+
+    WRITE 6 ' enter filename ';
+{   (format  = first 8 rows of outputfile)           }
+    READ 5 filename;
+    OPENF 15 filename 'old';
+    READ 15 dummy;
+    READ 15 dummy; U_SEPWF1         := R(dummy, 27, 35);
+    READ 15 dummy; B_SEPWF1         := R(dummy, 27, 35);
+    READ 15 dummy; B_SEPWF1_exp     := R(dummy, 27, 35);
+    READ 15 dummy; U_SEPWF2         := R(dummy, 27, 35);
+    READ 15 dummy; B_SEPWF2         := R(dummy, 27, 35);
+    READ 15 dummy; B_SEPWF2_exp     := R(dummy, 27, 35);
+    READ 15 dummy; B_singl1         := R(dummy, 27, 35);
+    READ 15 dummy; B_singl2         := R(dummy, 27, 35);
+    READ 15 dummy; B_SEPdoublet_1   := R(dummy, 27, 35);
+    READ 15 dummy; B_SEPdoublet_2   := R(dummy, 27, 35);
+    READ 15 dummy; B_trip_ex        := R(dummy, 27, 35);
+    READ 15 dummy; B_trip_in        := R(dummy, 27, 35);
+    READ 15 dummy; B_cssm           := R(dummy, 27, 35);
+    READ 15 dummy; B_dipole         := R(dummy, 27, 35);
+    READ 15 dummy; B_dipole_exp     := R(dummy, 27, 35);
+    CLOSEF 15;
+  ENDPROCEDURE;  {ReadFields}
+
+
+{---------------------------------------------------}
+  PROCEDURE ReadRaysFromFile rfname;
+    VARIABLE line 80;
+    VARIABLE k 1;
+
+    OPENF 15 rfname 'old';
+    line := ' ';
+    k    := 1;
+    beam_diameter   := 0;
+    beam_divergence := 0;
+
+    WHILE SS(line,1,1)#'#';
+      READ 15 line;
+      IF SS(line,1,1)#'#';
+        Ra(k,1) := R(line, 9,15);
+        Ra(k,2) := R(line,17,23);
+        Ra(k,3) := R(line,25,31);
+        Ra(k,4) := R(line,33,39);
+        Ra(k,5) := R(line,41,47);
+        Ra(k,6) := R(line,49,55);
+        Ra(k,7) := R(line,57,63);
+        Ra(k,8) := R(line,65,71);
+        Ra(k,9) := R(line,73,73);
+        N_ray_max := k;
+
+{        WRITE 6 '***'&SF(k, '(I5)')&'  dK: '&SF(Ra(k,6), '(F7.4)');}
+
+        IF ABS(Ra(k,1))>beam_diameter;
+          beam_diameter:=ABS(Ra(k,1));
+        ENDIF;
+        IF ABS(Ra(k,3))>beam_diameter;
+          beam_diameter:=ABS(Ra(k,3));
+        ENDIF;
+        IF ABS(Ra(k,2))>beam_divergence;
+          beam_divergence:=ABS(Ra(k,2));
+        ENDIF;
+        IF ABS(Ra(k,4))>beam_divergence;
+          beam_divergence:=ABS(Ra(k,4));
+        ENDIF;
+
+
+        k := k+1;
+      ENDIF;
+    ENDWHILE;
+    beam_diameter := 2*beam_diameter;
+    CLOSEF 15;
+
+    WRITE 6 '*** I read'&SF(N_ray_max,'(I7)')&' rays from file;';
+    WRITE 6 '*** beam  diameter is'&SF(beam_diameter*1000, '(F5.1)')&'mm';
+    WRITE 6 '*** and divergence is'&SF(beam_divergence*1000, '(F5.1)')&'mrad';
+  ENDPROCEDURE;  {ReadRaysFromFile}
+
+
+{---------------------------------------------------}
+  PROCEDURE GetFilenameAndReadRays;
+    WRITE 6 'enter name of input file'
+    '(CAUTION: program crashes if file does not exist or is misspelled!) :';
+    READ 5 raysfile;
+    OPENF 15 raysfile 'old';
+    ReadRaysFromFile raysfile;
+  ENDPROCEDURE;  {GetFilenameAndReadRays}
+
+
+{---------------------------------------------------}
+  FUNCTION GAUSS sigma x;
+    GAUSS := 1/SQRT(2*PI)/sigma*EXP(-x^2/2/sigma^2);
+  ENDFUNCTION;  {GAUSS}
+
+
+{---------------------------------------------------}
+  PROCEDURE CreateGaussianBeam raydistributionmode colorcode;
+    VARIABLE i            1;
+    VARIABLE j            1;
+    VARIABLE FWHM         1;
+    VARIABLE R_0          1;
+    VARIABLE R_0_2        1;
+    VARIABLE R_0_3        1;
+    VARIABLE theta_0      1;
+    VARIABLE theta_0_2    1;
+    VARIABLE theta_0_3    1;
+    VARIABLE N_ray        1;
+    VARIABLE N_ray_fac    1;
+    VARIABLE color        1;
+    VARIABLE prob         1;
+    VARIABLE phi          1;
+    VARIABLE step_r       1;
+    VARIABLE step_phi     1;
+    VARIABLE r_rel        1;
+    VARIABLE r            1;
+    VARIABLE max          1;
+    VARIABLE sigma        1;
+    VARIABLE theta_x    1 9;
+    VARIABLE theta_y    1 9;
+    VARIABLE mass2        1;
+    VARIABLE mass3        1;
+    VARIABLE energy2      1;
+    VARIABLE energy3      1;
+    VARIABLE chargestate2 1;
+    VARIABLE chargestate3 1;
+    VARIABLE beamselect   1;
+    VARIABLE abundance2   1;
+    VARIABLE abundance3   1;
+    VARIABLE abundance2_3 1;
+    VARIABLE txt1        80;
+
+
+    {----------------------}
+    theta_x(1) := -1;         theta_y(1) :=  0;
+    theta_x(2) := -1/SQRT(2); theta_y(2) := -1/SQRT(2);
+    theta_x(3) := -1/SQRT(2); theta_y(3) :=  1/SQRT(2);
+    theta_x(4) :=  0;         theta_y(4) := -1;
+    theta_x(5) :=  0;         theta_y(5) :=  0;
+    theta_x(6) :=  0;         theta_y(6) :=  1;
+    theta_x(7) :=  1/SQRT(2); theta_y(7) := -1/SQRT(2);
+    theta_x(8) :=  1/SQRT(2); theta_y(8) :=  1/SQRT(2);
+    theta_x(9) :=  1;         theta_y(9) :=  0;
+    {----------------------}
+
+    R_0     := 0.0020;
+    theta_0 := 0.0060;
+    WRITE 6 ' enter beam diameter [mm]';
+    READ 5 FWHM;
+    IF FWHM=0;
+      FWHM := 0.001;
+    ENDIF;
+    FWHM := FWHM/1000;
+    sigma := FWHM/(2*SQRT(2*LOG(2)));
+    R_0 := FWHM/2;
+    beam_diameter := R_0*2;
+    WRITE 6 ' enter divergence (maximal half angle) [mrad]';
+    IF (A>15.5)*(A<16.5); {assume oxygen ions}
+      theta_0 := theta_max(W);
+      txt1:=SF(theta_0,'(F4.1)')&'mrad';
+      WRITE 6 '(hint for an oxygen pilot beam:'
+              ' taking into account the reference energy and NO straggling'
+              ' in the gastarget you would need at most +-'&txt1&')';
+    ENDIF;
+    READ 5 theta_0;
+    theta_0 := theta_0/1000;
+    beam_divergence := theta_0;
+
+    IF (colorcode=RDCC_TWOBEAMS)+(colorcode=RDCC_THREEBEAMS);
+      WRITE 6 ' enter     diameter of second beam [mm]';
+      READ 5 R_0_2;
+      R_0_2 := R_0_2/2/1000;
+      WRITE 6 ' enter   divergence of second beam [mrad]';
+      READ 5 theta_0_2;
+      theta_0_2 := theta_0_2/1000;
+      WRITE 6 ' enter         mass of second beam [u]';
+      READ 5 mass2;
+      txt1 := ' enter       energy of second beam [MeV]';
+      WRITE 6 txt1&' (maybe '&SF((1-dE_max(W)/100)*W, '(F6.2)')&'?)';
+      READ 5 energy2;
+      WRITE 6 ' enter charge state of second beam [e]';
+      READ 5 chargestate2;
+      WRITE 6 ' enter  relative abundance (0-100) [%]';
+      READ 5 abundance2;
+    ENDIF;
+
+    IF colorcode=RDCC_THREEBEAMS;
+      WRITE 6 ' enter     diameter of third  beam [mm]';
+      READ 5 R_0_3;
+      R_0_3 := R_0_3/2/1000;
+      WRITE 6 ' enter   divergence of third  beam [mrad]';
+      READ 5 theta_0_3;
+      theta_0_3 := theta_0_3/1000;
+      WRITE 6 ' enter         mass of third  beam [u]';
+      READ 5 mass3;
+      txt1 := ' enter       energy of second beam [MeV]';
+      WRITE 6 txt1&' (maybe '&SF((1+dE_max(W)/100)*W, '(F6.2)')&'?)';
+      READ 5 energy3;
+      WRITE 6 ' enter charge state of third  beam [e]';
+      READ 5 chargestate3;
+      txt1 := ' enter  relative abundance (0-';
+      WRITE 6 txt1&SF(100-abundance2, '(I3)')&') [%]';
+      READ 5 abundance3;
+      abundance2_3 := abundance2+abundance3;
+    ENDIF;
+
+    IF raydistributionmode=RDM_OUTERRAYS;
+      LOOP i 1 16;
+        LOOP j 1 8;
+          Ra(i, j) := 0;
+        ENDLOOP;
+      ENDLOOP;
+
+      Ra(01, 3) :=  R_0; Ra(01, 2) :=  theta_0; Ra(01, 9) := BLUE;
+      Ra(02, 3) :=  R_0; Ra(02, 2) := -theta_0; Ra(02, 9) := BLUE;
+      Ra(03, 3) :=  R_0; Ra(03, 4) :=  theta_0; Ra(03, 9) := BLUE;
+      Ra(04, 3) :=  R_0; Ra(04, 4) := -theta_0; Ra(04, 9) := BLUE;
+
+      Ra(05, 1) :=  R_0; Ra(05, 2) :=  theta_0; Ra(05, 9) := RED;
+      Ra(06, 1) :=  R_0; Ra(06, 2) := -theta_0; Ra(06, 9) := RED;
+      Ra(07, 1) :=  R_0; Ra(07, 4) :=  theta_0; Ra(07, 9) := RED;
+      Ra(08, 1) :=  R_0; Ra(08, 4) := -theta_0; Ra(08, 9) := RED;
+
+      Ra(09, 3) := -R_0; Ra(09, 2) :=  theta_0; Ra(09, 9) := YELLOW;
+      Ra(10, 3) := -R_0; Ra(10, 2) := -theta_0; Ra(10, 9) := YELLOW;
+      Ra(11, 3) := -R_0; Ra(11, 4) :=  theta_0; Ra(11, 9) := YELLOW;
+      Ra(12, 3) := -R_0; Ra(12, 4) := -theta_0; Ra(12, 9) := YELLOW;
+
+      Ra(13, 1) := -R_0; Ra(13, 2) :=  theta_0; Ra(13, 9) := GREEN;
+      Ra(14, 1) := -R_0; Ra(14, 2) := -theta_0; Ra(14, 9) := GREEN;
+      Ra(15, 1) := -R_0; Ra(15, 4) :=  theta_0; Ra(15, 9) := GREEN;
+      Ra(16, 1) := -R_0; Ra(16, 4) := -theta_0; Ra(16, 9) := GREEN;
+
+      N_ray_max := 16;
+
+    ELSEIF 1=1;
+      {sigma := 0.42466090014;} {R_0 = half beam diameter = .5*FWHM
+                          -> sigma = R_0/(2*sqrt(2*ln(2)))=0.4246609*R_0}
+      {***** we increase sigma (simulating a broader beam) to get *****}
+      {***** a finite intensity probability even at R_0           *****}
+      {sigma := .75;}
+      {****************************************************************}
+
+      txt1:=     'I will create a Gaussian beam with diameter';
+      txt1:=txt1&SF(2000*R_0, '(F7.2)')&'mm';
+      WRITE 6 txt1;
+      txt1:=     'and half of the central intensity at the circle radius at';
+      txt1:=txt1&SF(1000*R_0, '(F7.2)')&'mm.';
+      WRITE 6 txt1;
+
+      WRITE 6 'enter number of rays to create (500<n<150000):';
+      Read 5 N_ray_max;
+
+      step_r := INT(LOG(N_ray_max)/LOG(10))^2;
+      step_r := 1/step_r;
+
+      N_ray:=0;
+      LOOP r_rel 0 1 step_r;
+        prob := GAUSS(sigma, r_rel*R_0);
+        step_phi := 2*PI/INT(prob);
+        IF step_phi>2*PI/4;
+          step_phi := 2*PI/4;  {larger steps make no sense}
+        ENDIF;
+        N_ray := N_ray+9*(2*PI/step_phi);
+      ENDLOOP;
+
+      N_ray_fac := N_ray_max/N_ray;
+
+      i := 0;
+      LOOP r_rel 0 1 step_r;
+        prob := GAUSS(sigma, r_rel*R_0);
+        step_phi := 2*PI/INT(prob*N_ray_fac);
+        IF step_phi>2*PI/4;
+          step_phi := 2*PI/4;  {larger steps make no sense}
+        ENDIF;
+
+        phi := 0;
+        WHILE phi<1.9999999*PI;
+          LOOP j 1 9;
+            i := i + 1;
+            Ra(i,5) := 0;
+            Ra(i,6) := 0;
+            Ra(i,7) := 0;
+            Ra(i,8) := 0;
+            IF (colorcode=RDCC_TWOBEAMS)+(colorcode=RDCC_THREEBEAMS);
+              RERAN beamselect;
+              beamselect := (beamselect/2+.5)*100;
+              IF beamselect<abundance2;
+                Ra(i,1) := r_rel*R_0_2*cos(phi); {second beam    }
+                Ra(i,3) := r_rel*R_0_2*sin(phi); {       diameter}
+                Ra(i,6) := 0.5*(W-energy2)/energy2;        {       energy  }
+                Ra(i,7) := 0.5*(A-mass2)/mass2;          {       mass    }
+                Ra(i,8) := 0.5*(q-chargestate2)/chargestate2;   {       charge  }
+              ELSEIF (colorcode=RDCC_THREEBEAMS)*(beamselect<abundance2_3);
+                Ra(i,1) := r_rel*R_0_3*cos(phi); {third  beam    }
+                Ra(i,3) := r_rel*R_0_3*sin(phi); {       diameter}
+                Ra(i,6) := 0.5*(W-energy3)/energy3;        {       energy  }
+                Ra(i,7) := 0.5*(A-mass3)/mass3;          {       mass    }
+                Ra(i,8) := 0.5*(q-chargestate3)/chargestate3;   {       charge  }
+              ELSEIF 1=1;
+                Ra(i,1) := r_rel*R_0*cos(phi); {diameter of first beam     }
+                Ra(i,3) := r_rel*R_0*sin(phi); {other params stay unchanged}
+              ENDIF;
+            ELSEIF 1=1;
+              Ra(i,1) := r_rel*R_0*cos(phi); {set diameter of single beam}
+              Ra(i,3) := r_rel*R_0*sin(phi);
+            ENDIF;
+
+            IF     raydistributionmode=RDM_ALLRAYS;
+              RERAN r;          {       -1 < r < 1       }
+              IF beamselect<abundance2; {cf. some lines above}
+                r := r * theta_0_2;  { -theta_0_2 < r < theta_0_2 }
+                Ra(i,2) := r;
+                max := SQRT(SQR(theta_0_2)-SQR(Ra(i,2)));
+                RERAN r;             {   -1 < r < 1   }
+                r := r * max;        { -max < r < max }
+                Ra(i,4) := r;
+              ELSEIF beamselect<abundance2_3; {cf. some lines above}
+                r := r * theta_0_3;  { -theta_0_3 < r < theta_0_3 }
+                Ra(i,2) := r;
+                max := SQRT(SQR(theta_0_3)-SQR(Ra(i,2)));
+                RERAN r;             {   -1 < r < 1   }
+                r := r * max;        { -max < r < max }
+                Ra(i,4) := r;
+              ELSEIF 1=1;
+                r := r * theta_0;    { -theta_0 < r < theta_0 }
+                Ra(i,2) := r;
+                max := SQRT(SQR(theta_0)-SQR(Ra(i,2)));
+                RERAN r;             {   -1 < r < 1   }
+                r := r * max;        { -max < r < max }
+                Ra(i,4) := r;
+              ENDIF;
+            ELSEIF raydistributionmode=RDM_SELECTEDRAYS;
+              Ra(i,2) := theta_0*theta_x(j);
+              Ra(i,4) := theta_0*theta_y(j);
+            ELSEIF 1=1;
+              Ra(i,2) := 0;
+              Ra(i,4) := 0;
+            ENDIF;
+          
+            IF     colorcode=RDCC_RANDOM;
+              {*** for random colors use the following 2 lines: ***}
+              RERAN color;                 { -1 <  color <  1 }
+              color := INT(2.5*color+3.5); {  0 <  color <  6 }
+            ELSEIF colorcode=RDCC_RED;
+               {*** for monochromatic (RED) rays, use following line: ***}
+               color := RED;
+            ELSEIF colorcode=RDCC_POSITIONDEPENDING;
+              {*** for starting-position dependent colors use this: ***}
+              IF     r_rel<.2; color := BLACK;
+              ELSEIF r_rel<.4; color := BLUE;
+              ELSEIF r_rel<.6; color := RED;
+              ELSEIF r_rel<.8; color := YELLOW;
+              ELSEIF 1=1;      color := GREEN;
+              ENDIF;
+            ELSEIF colorcode=RDCC_TWOBEAMS;
+              IF beamselect<abundance2;
+                color:=BLUE;
+              ELSEIF 1=1;
+                color:=RED;
+              ENDIF;
+            ELSEIF colorcode=RDCC_THREEBEAMS;
+              IF beamselect<abundance2;
+                color:=BLUE;
+              ELSEIF beamselect<abundance2_3;
+                color:=GREEN;
+              ELSEIF 1=1;
+                color:=RED;
+              ENDIF;
+            ELSEIF 1=1;
+              color := BLACK;
+            ENDIF;
+            Ra(i,9) := color;
+          ENDLOOP;
+          phi := phi + step_phi;
+        ENDWHILE;
+      ENDLOOP;
+      N_ray_max := i;
+    ENDIF;
+    WRITE 6 'I have created'&SF(N_ray_max, '(I7)')&' rays.';
+  ENDPROCEDURE;  {CreateGaussianBeam}
+
+
+{---------------------------------------------------}
+  PROCEDURE CreateColorCodedBeam;
+    VARIABLE i        1;
+    VARIABLE j        1;
+    VARIABLE R_0      1;
+    VARIABLE theta_0  1;
+    VARIABLE color    1;
+    VARIABLE prob     1;
+    VARIABLE phi      1;
+    VARIABLE step_phi 1;
+    VARIABLE r_rel    1;
+    VARIABLE sigma    1;
+    VARIABLE theta_x  1 9;
+    VARIABLE theta_y  1 9;
+    VARIABLE choice   1;
+    VARIABLE txt     80;
+
+    txt := ' xmin/xmax/ymin/ymax with different colors               ';
+    WRITE 6 txt&'               : 1';
+    txt := ' gaussian profile with colors BLACK-BLUE-RED-YELLOW-GREEN';
+    WRITE 6 txt&' from center   : 2';
+    txt := ' random-colored gaussian profile beam                    ';
+    WRITE 6 txt&'               : 3';
+    txt := ' additional beam with different diameter/divergence/mass/';
+    WRITE 6 txt&'energy/charge  : 4';
+    txt := ' Daniel mode 1 (i.e. third beam!)                        ';
+    WRITE 6 txt&'               : 5';
+    txt := ' Daniel mode 2 (i.e. arbitrary number of different beams)';
+    WRITE 6 txt&'               : 6';
+    choice := ' ';
+    WHILE TYPE(choice)#TYPE(1);
+      READ 5 choice;
+    ENDWHILE;
+    IF     choice=1;
+      CreateGaussianBeam RDM_OUTERRAYS RDCC_OUTERRAYCOLORING;
+    ELSEIF choice=2;
+      CreateGaussianBeam RDM_ALLRAYS RDCC_POSITIONDEPENDING;
+    ELSEIF choice=3;
+      CreateGaussianBeam RDM_ALLRAYS RDCC_RANDOM;
+    ELSEIF choice=4;
+      CreateGaussianBeam RDM_ALLRAYS RDCC_TWOBEAMS;
+    ELSEIF choice=5;
+      CreateGaussianBeam RDM_ALLRAYS RDCC_THREEBEAMS;
+    ELSEIF choice=6;
+      WRITE 6 ''
+              'Come on, how many special Daniel modes do you expect???'
+              'Let''s wait until he REALLY needs this mode!'
+              '';
+    ENDIF;
+  ENDPROCEDURE;  {CreateColorCodedBeam}
+
+
+{---------------------------------------------------}
+  PROCEDURE DefineRays;
+    VARIABLE choice   1;
+    VARIABLE i1       1;
+    VARIABLE j1       1;
+    VARIABLE k1       1;
+    VARIABLE l1       1;
+    VARIABLE m1       1;
+    VARIABLE w1       1;
+    VARIABLE r1       1;
+    VARIABLE f1       1;
+    VARIABLE i2       1;
+    VARIABLE j2       1;
+    VARIABLE k2       1;
+    VARIABLE l2       1;
+    VARIABLE m2       1;
+    VARIABLE r2       1;
+    VARIABLE f2       1;
+    VARIABLE w2       1;
+    VARIABLE i3       1;
+    VARIABLE j3       1;
+    VARIABLE k3       1;
+    VARIABLE l3       1;
+    VARIABLE m3       1;
+    VARIABLE r3       1;
+    VARIABLE f3       1;
+    VARIABLE w3       1;
+    VARIABLE n        1;
+    VARIABLE E_i      1;
+    VARIABLE txt     80;
+    
+    WRITE 6 ' Read ray parameters from input file                : 1';
+    txt :=  ' Gaussian beam (probability weighted, ';
+    WRITE 6 txt&'e.g. from accelerator) : 2';
+    txt :=  ' Gaussian beam selected ray bundles ';
+    WRITE 6 txt&' (suitable for analysis) : 3';
+    WRITE 6 ' Color-coded beam (strange, possible error)         : 4';
+    WRITE 6 ' Single central ray                                 : 5';
+    WRITE 6 ' xy beam with same divergence                       : 6';
+    WRITE 6 ' Cone beam                                          : 7';
+    WRITE 6 ' Three cone beams (adv: choose E2<E1<E3 or E3<E1<E2): 8';
+    WRITE 6 ' Return to main menu                                : 0';
+    choice := ReadNumVal(0);
+    IF     choice=1;
+      GetFilenameAndReadRays;
+    ELSEIF choice=2;
+      CreateGaussianBeam RDM_ALLRAYS RDCC_RED;
+    ELSEIF choice=3;
+      CreateGaussianBeam RDM_SELECTEDRAYS RDCC_RED;
+    ELSEIF choice=4;
+      CreateColorCodedBeam;
+    ELSEIF choice=5;
+      LOOP tmp1 1 8;
+        Ra(1, tmp1) := 0;
+      ENDLOOP;
+      Ra(1, 9) := RED;
+      N_ray_max := 1;
+      beam_diameter   := 0;
+      beam_divergence := 0;
+    ELSEIF choice=6;  
+      WRITE 6 ' Enter divergence [mrad]';
+      READ 5 i1;
+      IF i1>18;
+        WRITE 6 '(This value is too big, you may have problems!)';
+      ENDIF;
+      i1 := i1/1000;
+      beam_divergence := i1;
+      WRITE 6 ' Enter beam diameter [mm]';
+      READ 5 j1;
+      beam_diameter := j1/(2*1000);
+      WRITE 6 ' Enter number of rays (< 150000)';
+      READ 5 k1;
+      N_ray_max := k1;
+      l1 := 1;
+      m1 := -beam_diameter;
+     {x rays}
+      WHILE (l1<N_ray_max/4);
+          Ra(l1, 9) := RED;
+          Ra(l1, 1) := m1;
+          Ra(l1, 3) := 0;
+          Ra(l1, 2) := beam_divergence;
+          Ra(l1, 4) := 0;
+          l1 := l1+1;
+          m1 := m1+4*beam_diameter/N_ray_max;
+      ENDWHILE;
+      m1 := beam_diameter;
+      WHILE (l1<N_ray_max/2);
+          Ra(l1, 9) := RED;
+          Ra(l1, 1) := m1;
+          Ra(l1, 3) := 0;
+          Ra(l1, 2) := -beam_divergence;
+          Ra(l1, 4) := 0;
+          l1 := l1+1;
+          m1 := m1-4*beam_diameter/N_ray_max;
+      ENDWHILE;
+     {y rays}
+      m1 := -beam_diameter;
+      WHILE (l1<(3*N_ray_max/4));
+          Ra(l1, 9) := BLUE;
+          Ra(l1, 1) := 0;
+          Ra(l1, 3) := m1;
+          Ra(l1, 2) := 0;
+          Ra(l1, 4) := beam_divergence;
+          l1 := l1+1;
+          m1 := m1+4*beam_diameter/N_ray_max;
+      ENDWHILE;
+      m1 := beam_diameter;
+      WHILE (l1<N_ray_max);
+          Ra(l1, 9) := BLUE;
+          Ra(l1, 1) := 0;
+          Ra(l1, 3) := m1;
+          Ra(l1, 2) := 0;
+          Ra(l1, 4) := -beam_divergence;
+          l1 := l1+1;
+          m1 := m1-4*beam_diameter/N_ray_max;
+      ENDWHILE;
+    ELSEIF choice=7;  
+      WRITE 6 ' Enter divergence [mrad]';
+      READ 5 i1;
+      IF i1>18;
+        WRITE 6 '(This value is too big, you may have problems!)';
+      ENDIF;
+      beam_divergence := i1/1000;
+      WRITE 6 ' Enter beam diameter [mm]';
+      READ 5 r1;
+      beam_diameter := r1/(2*1000);
+      WRITE 6 ' Enter number of rays (<900)';
+      READ 5 m1;
+      N_ray_max := m1;        
+      l1 := 1;
+      k1 := 1;
+      j1 := 0;
+      WHILE (j1<beam_diameter);
+      f1 := 0;
+      k1 := 0;
+          WHILE (k1<N_ray_max/4);
+             Ra(l1, 9) := RED;
+             Ra(l1, 1) := j1*cos(f1);
+             Ra(l1, 3) := j1*sin(f1);
+             Ra(l1, 2) := beam_divergence*cos(f1);
+             Ra(l1, 4) := beam_divergence*sin(f1);
+             l1 := l1+1;
+             k1 := k1+1;
+             f1 := f1+2*4*PI/N_ray_max;
+          ENDWHILE;
+          j1 := j1+beam_diameter/4;
+      ENDWHILE; 
+    ELSEIF choice=8;    
+     {beam 1}
+      WRITE 6 ' Enter energy beam1 [MeV]';
+      READ 5 w1;
+      W := w1;
+      WRITE 6 ' Enter divergence1 [mrad]';
+      READ 5 i1;
+      IF i1>18;
+        WRITE 6 '(This value is too big, you may have problems!)';
+      ENDIF;
+      beam_divergence := i1/1000;
+      WRITE 6 ' Enter beam1 diameter [mm]';
+      READ 5 r1;
+      beam_diameter := r1/(2*1000);
+      WRITE 6 ' Enter number of rays beam1 (<300)';
+      READ 5 m1;
+      N_ray_max := m1;        
+      l1 := 1;
+      k1 := 1;
+      j1 := 0;
+      WHILE (j1<beam_diameter);
+      f1 := 0;
+      k1 := 0;
+          WHILE (k1<m1/4);
+             Ra(l1, 9) := RED;
+             Ra(l1, 1) := j1*cos(f1);
+             Ra(l1, 3) := j1*sin(f1);
+             Ra(l1, 2) := beam_divergence*cos(f1);
+             Ra(l1, 4) := beam_divergence*sin(f1);
+             Ra(l1, 6) := 0;
+             l1 := l1+1;
+             k1 := k1+1;
+             f1 := f1+2*4*PI/m1;
+          ENDWHILE;
+          j1 := j1+beam_diameter/4;
+      ENDWHILE; 
+     {beam 2}
+      l2 := l1;
+      WRITE 6 ' Enter energy beam2 [MeV]';
+      READ 5 w2;
+      WRITE 6 ' Enter divergence beam2 [mrad]';
+      READ 5 i2;
+      IF i2>18;
+        WRITE 6 '(This value is too big, you may have problems!)';
+      ENDIF;
+      i2 := i2/1000;
+      WRITE 6 ' Enter beam2 diameter [mm]';
+      READ 5 r2;
+      r2 := r2/(2*1000);
+      WRITE 6 ' Enter number of rays beam2 (<300)';
+      READ 5 m2;
+      N_ray_max := m2+m1;
+      k2 := 1;
+      j2 := 0;
+      WHILE (j2<r2);
+      f2 := 0;
+      k2 := 0;
+          WHILE (k2<m2/4);
+             Ra(l2, 9) := BLUE;
+             Ra(l2, 1) := j2*cos(f2);
+             Ra(l2, 3) := j2*sin(f2);
+             Ra(l2, 2) := i2*cos(f2);
+             Ra(l2, 4) := i2*sin(f2);
+             Ra(l2, 6) := 0.5*(w2-W)/W;
+             l2 := l2+1;
+             k2 := k2+1;
+             f2 := f2+2*4*PI/m2;
+          ENDWHILE;
+          j2 := j2+r2/4;
+      ENDWHILE;
+     {beam 3}
+      l3 := l2;
+      WRITE 6 ' Enter energy beam3 [MeV]';
+      READ 5 w3;
+      WRITE 6 ' Enter divergence beam3 [mrad]';
+      READ 5 i3;
+      IF i3>18;
+        WRITE 6 '(This value is too big, you may have problems!)';
+      ENDIF;
+      i3 := i3/1000;
+      WRITE 6 ' Enter beam3 diameter [mm]';
+      READ 5 r3;
+      r3 := r3/(2*1000);
+      WRITE 6 ' Enter number of rays beam3 (<300)';
+      READ 5 m3;
+      N_ray_max := m3+m2+m1;
+      k3 := 1;
+      j3 := 0;
+      WHILE (j3<r3);
+      f3 := 0;
+      k3 := 0;
+          WHILE (k3<m3/4);
+             Ra(l3, 9) := GREEN;
+             Ra(l3, 1) := j3*cos(f3);
+             Ra(l3, 3) := j3*sin(f3);
+             Ra(l3, 2) := i3*cos(f3);
+             Ra(l3, 4) := i3*sin(f3);
+             Ra(l3, 6) := 0.5*(w3-W)/W;
+             l3 := l3+1;
+             k3 := k3+1;
+             f3 := f3+2*4*PI/m3;
+          ENDWHILE;
+          j3 := j3+r3/4;
+      ENDWHILE;
+      WRITE 6 ' RED = beam 1; BLUE = beam 2; GREEN = beam 3.';
+    ENDIF;
+  ENDPROCEDURE;  {DefineRays}
+
+
+{---------------------------------------------------------------}
+  PROCEDURE ChangeDimensions;
+    VARIABLE txtval 80;
+    VARIABLE numval  1;
+    VARIABLE default 1;
+
+    numval  :=  DL_FOCTRIPLET_GASTARGET + DL_gastarget_CSSM;
+    default := 100*DL_gastarget_CSSM;
+    txtval  := 'enter drift length gastarget->CSSM ';
+    WRITE 6 txtval&'(default is'&SF(default, '(F6.1)')&'cm):';
+    WHILE TYPE(txtval)#TYPE(1);
+      READ 5 txtval;
+      IF TYPE(txtval)#TYPE(1);
+        WRITE 6 ' enter a numerical value or press <ENTER> for default!';
+      ENDIF;
+    ENDWHILE;
+    IF txtval#0;
+      DL_gastarget_CSSM := txtval/100;
+      DL_FOCTRIPLET_GASTARGET := numval - DL_gastarget_CSSM;
+      txtval := 'implicitly changed drift length foc.triplet->gastarget to';
+      WRITE 6 txtval&SF(DL_FOCTRIPLET_GASTARGET*100, '(F6.1)')&'cm';
+    ENDIF;
+
+  ENDPROCEDURE;  {ChangeDimensions}
+
+
+{---------------------------------------------------------------}
+  PROCEDURE SetDeviations;
+    VARIABLE d_var  1;
+    VARIABLE var_No 1;
+    VARIABLE k      1;
+    VARIABLE p      1;
+    VARIABLE txt1  80;
+
+    WRITE 6 'enter variable to be changed';
+    WRITE 6
+    '1 = x    | 2 = xp     | 3 = y    | 4 = yp    <-- these act cumulatively!';
+    WRITE 6
+    '5 = time | 6 = energy | 7 = mass | 8 = charge';
+    READ 5 var_No;
+    IF     var_No=1;
+      WRITE 6 ' enter x [mm]';
+    ELSEIF var_No=2;
+      WRITE 6 ' enter xp [mrad]';
+      IF (A>15.5)*(A<16.5); {assume oxygen ions}
+        d_var := theta_max(W);
+        txt1 := SF(d_var, '(F4.1)')&'mrad';
+        WRITE 6 '(hint for an oxygen pilot beam:'
+                 ' taking into account the reference energy and NO straggling'
+                 ' in the gastarget you would need at most +-'&txt1&')';
+      ENDIF;
+    ELSEIF var_No=3;
+      WRITE 6 ' enter y [mm]';
+    ELSEIF var_No=4;
+      WRITE 6 ' enter yp [mrad]';
+      IF (A>15.5)*(A<16.5); {assume oxygen ions}
+        d_var := theta_max(W);
+        txt1 := SF(d_var, '(F4.1)')&'mrad';
+        WRITE 6 '(hint for an oxygen pilot beam:'
+                ' taking into account the reference energy and NO straggling'
+                ' in the gastarget you would need at most +-'&txt1&')';
+      ENDIF;
+    ELSEIF var_No=5;
+      WRITE 6 '***not yet implemented! Press <ENTER> to continue...';
+    ELSEIF var_No=6;
+      WRITE 6 ' enter absolute value [MeV] or relative change [%]'
+              ' (examples:  6.2    means 6.2MeV'
+              '            -5.5%   means 5.5% less than the reference energy)';
+      IF (A>15.5)*(A<16.5); {assume oxygen ions}
+        d_var := dE_max(W);
+        txt1 := SF(d_var, '(F4.1)')&'%';
+        WRITE 6 '(hint for an oxygen pilot beam:'
+                ' taking into account the reference energy and NO straggling'
+                ' in the gastarget you would need at most +-'&txt1&','
+                ' i.e.'&SF((1-d_var/100)*W, '(F6.2)')&' --'&SF(
+                           (1+d_var/100)*W, '(F6.2)')&'  [MeV])';
+      ENDIF;
+    ELSEIF var_No=7;
+      WRITE 6 ' enter new mass [u]    <- NEW! give absolute value...';
+    ELSEIF var_No=8;
+      WRITE 6 ' enter new charge state [e]    <- NEW! give absolute value...';
+    ELSEIF      1=1;
+      var_No := 9;
+    ENDIF;
+
+    IF     var_No#6;
+      READ 5 d_var;
+    ELSEIF var_No=6;
+      txt1:='';
+      READ 5 txt1;
+      IF TYPE(txt1)=TYPE('x');
+        p := 0;
+        LOOP k 1 LENGTH(txt1);
+          IF SS(txt1, k, k)='%';
+            p := k;
+          ENDIF;
+        ENDLOOP;
+        IF p>1;
+          d_var := R(txt1, 1, p-1)/100;
+          WRITE 6 ''
+                  'beam energy changed to'&SF((1+d_var)*W, '(F6.2)')&'MeV'
+                  '';
+        ELSEIF 1=1;
+          var_No := 9;
+        ENDIF;
+      ELSEIF TYPE(txt1)=TYPE(1);
+        IF txt1>0;
+          d_var := 0.5*(txt1-W)/W;
+          WRITE 6 ''
+                  'beam energy changed to'&SF((1+d_var)*W, '(F6.2)')&'MeV'
+                  '';
+        ELSEIF 1=1;
+          var_No := 9;
+        ENDIF;
+      ELSEIF 1=1;
+        var_No := 9;
+      ENDIF;
+    ENDIF;
+
+    IF var_No=9;
+      WRITE 6 '' 'input error, nothing changed...' '';
+    ELSEIF var_No<5;
+      d_var := d_var / 1000;
+      LOOP k 1 N_ray_max;
+        Ra(k,var_No) := Ra(k,var_No) + d_var;
+        k := k + 1;
+      ENDLOOP;
+    ELSEIF var_No>4;
+      IF var_No=7;
+        d_var := 0.5*(d_var-A)/A;
+      ENDIF;
+      IF var_No=8;
+        d_var := 0.5*(d_var-q)/q;
+      ENDIF;
+      LOOP k 1 N_ray_max;
+        Ra(k,var_No) := d_var;
+        k := k + 1;
+      ENDLOOP;
+    ENDIF;
+  ENDPROCEDURE;  {SetDeviations}
+
+
+{---------------------------------------------------------------}
+  PROCEDURE E_scan;
+    VARIABLE i       1;
+    VARIABLE k       1;
+    VARIABLE dE      1;
+    VARIABLE dEmax   1;
+    VARIABLE dEsteps 1;
+    VARIABLE txt1   80;
+    VARIABLE full_transm_min 1;
+    VARIABLE full_transm_max 1;
+
+    {---------------------------------------------------------}
+    PROCEDURE TRANS dE;
+      VARIABLE beam_is_in 1;
+      VARIABLE x 1;
+      VARIABLE y 1;
+      VARIABLE x_min 1;
+      VARIABLE x_max 1;
+      VARIABLE y_min 1;
+      VARIABLE y_max 1;
+      VARIABLE r_max 1;
+      VARIABLE N_tot 1;
+      VARIABLE N_out 1;
+      VARIABLE N_in 1;
+      VARIABLE trans 1;
+      VARIABLE dummy 80;
+      VARIABLE i 1;
+      VARIABLE k 1;
+
+      {------------------------------------------------}
+      PROCEDURE CheckSize;
+        IF                 x<-x_min; LFALSE beam_is_in;
+        ELSEIF             x>+x_max; LFALSE beam_is_in;
+        ELSEIF             y<-y_min; LFALSE beam_is_in;
+        ELSEIF             y>+y_max; LFALSE beam_is_in;
+        ELSEIF SQRT(x^2+y^2)>+r_max; LFALSE beam_is_in;
+        ENDIF;
+      ENDPROCEDURE;  {CheckSize}
+
+      {------------------------------------------------}
+      N_tot := 0;
+      N_out := 0;
+      LOOP k 1 N_ray_max;
+        UnityMap;
+        ClearRays;
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4)
+                  Ra(k,5) Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+        VELGET RAY(1) 2 x;
+        VELGET RAY(3) 2 y;
+        N_tot := N_tot + 1;
+        LTRUE beam_is_in;
+        i := first_element;
+        WHILE beam_is_in;
+          VELGET dim(i) 1 x_min;
+          VELGET dim(i) 2 x_max;
+          VELGET dim(i) 3 y_min;
+          VELGET dim(i) 4 y_max;
+          VELGET dim(i) 5 r_max;
+          CheckSize;
+          ApplyMap_i i;
+          VELGET RAY(1) 2 x;
+          VELGET RAY(3) 2 y;
+          CheckSize;
+          IF NOT(beam_is_in);
+            N_out := N_out+1;
+            i := last_element;
+          ENDIF;
+          IF i=last_element;
+            LFALSE beam_is_in;
+          ENDIF;
+          i := i + 1;
+        ENDWHILE;
+      ENDLOOP;
+      N_in  := N_tot - N_out;
+      trans := N_in/N_tot*100;
+      IF N_out=0;
+        IF full_transm_min=-100;
+          full_transm_min := dE;
+        ELSEIF 1=1;
+          full_transm_max := dE;
+        ENDIF;
+      ENDIF;
+      dummy := SF(dE,'(F7.2)')&SF((1+dE/100)*W,'(F8.2)')&SF(trans,'(F9.1)');
+      dummy := dummy&SF(N_tot,'(I11)')&SF(N_in,'(I8)');
+      dummy := dummy&SF(N_out,'(I7)');
+      WRITE  6 dummy;
+      WRITE 10 dummy;
+    ENDPROCEDURE;  {TRANS}
+    {---------------------------------------------------------------}
+
+    full_transm_min := -100;
+    full_transm_max := -100;
+    tmp1:=99;
+
+    IF (beam_diameter<0)+(beam_divergence<0);
+      WRITE 6 '***ERROR: you have not defined a beam yet!';
+      tmp1:=0;
+    ENDIF;
+    IF (N_ray_max>99)*(tmp1=99);
+      WRITE 6
+      '***ATTENTION: You have defined'&SF(N_ray_max, '(I5)')&' rays.'
+      '              The calculation will take a while ...'
+      '              Are you sure (99=yes, <ENTER>=no)?';
+      tmp1 := '';
+      WHILE TYPE(tmp1)#TYPE(1);
+        READ 5 tmp1;
+      ENDWHILE;
+    ENDIF;
+    IF (beam_divergence>.005)*(tmp1=99);
+      WRITE 6
+      '***ATTENTION: beam diameter is'&SF(beam_diameter*1000, '(F5.1)')&'mm'
+      '              with a divergence of'&SF(beam_divergence*1000,
+                                              '(F5.1)')&'mrad;'
+      '              Are you sure (99=yes, <ENTER>=no)?';
+      tmp1 := '';
+      WHILE TYPE(tmp1)#TYPE(1);
+        READ 5 tmp1;
+      ENDWHILE;
+    ENDIF;
+
+    IF tmp1=99;
+      LOOP i first_element last_element;
+        UnityMap;
+        ProcessElement i;
+      ENDLOOP;
+      OPENF 10 SESSIONPREFIX(1)&'energy_transm.dat' 'unknown';
+      dEmax := dE_max(W);
+      IF (A>15.5)*(A<16.5); {assume oxygen ions}
+        txt1 := SF(dEmax, '(F4.1)')&'% (i.e.'&SF(W*(1-dEmax/100), '(F6.2)');
+        txt1 := txt1&' to'&SF(W*(1+dEmax/100), '(F6.2)')&'MeV)';
+        WRITE 6
+        'note: taking into account the reference energy and NO straggling'
+        '      in the gastarget you would need an energy variation of'
+        '      at most +/-'&txt1;
+      ENDIF;
+      WRITE 6
+      ''
+      'dE/E/%   Elab/MeV transm./%    Ntot    Nin    Nout';
+      dEmax := 1.5*dE_max(W);
+      dEmax := INT(dEmax+1);
+      IF dEmax>6;
+        dEsteps := 1;
+      ELSEIF 1=1;
+        dEsteps :=.5;
+      ENDIF;
+      LOOP dE -dEmax +dEmax dEsteps;
+        LOOP k 1 N_ray_max;
+          Ra(k,6) := dE/100;
+        ENDLOOP;
+        TRANS dE;
+      ENDLOOP;
+      CLOSEF 10;
+      WRITE 6 '*** I wrote this transmission data to file'
+              '*** '&SESSIONPREFIX(1)&'energy_transm.dat'
+              '';
+      session_number := session_number+1;
+
+      IF (full_transm_min>-dE_max(W))+(full_transm_max<dE_max(W));
+        WRITE 6 'ATTENTION: it seems that you do NOT have'
+                '---------- the full needed energy acceptance!'
+                '';
+      ELSEIF 1=1;
+        WRITE 6 'Congratulations! It seems that you have'
+                'the full needed energy acceptance.'
+                '';
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE;  {E_scan}
+
+
+{-----------------------------------------------------------------------}
+  PROCEDURE SetFields;
+    VARIABLE line 2;
+    VARIABLE i    1;
+
+    WRITE 6 ' which fields?  focussing triplet   ft';
+    WRITE 6 '                triplet              t';
+    WRITE 6 '                separation WF1      w1';
+    WRITE 6 '                singlet 1           s1';
+    WRITE 6 '                doublet             do';
+    WRITE 6 '                singlet 2           s2';
+    WRITE 6 '                separation WF2      w2';
+    WRITE 6 '--------------------------------------';
+    WRITE 6 'BACK TO MENU                        x ';
+
+    WHILE TYPE(line)#TYPE(' ');
+      READ 5 line;
+    ENDWHILE;
+
+    i:=0;
+    
+    IF     SS(line,1,2)='ft';
+      WRITE 6 'enter B_foctrip_ex [mT], now is '&SF(B_foctrip_ex*1000,'(F7.1)');
+      B_foctrip_ex := ReadNumVal(B_foctrip_ex*1000)/1000;
+      WRITE 6 'enter B_foctrip_in [mT], now is '&SF(B_foctrip_in*1000,'(F7.1)');
+      B_trip_in := ReadNumVal(B_trip_in*1000)/1000;
+      {ProcessElement EL_FOCTRIPLET;}
+    ELSEIF SS(line,1,2)='t';
+      WRITE 6 'enter B_trip_ex [mT], now is '&SF(B_trip_ex*1000, '(F7.1)');
+      B_trip_ex := ReadNumVal(B_trip_ex*1000)/1000;
+      WRITE 6 'enter B_trip_in [mT], now is '&SF(B_trip_in*1000, '(F7.1)');
+      B_trip_in := ReadNumVal(B_trip_in*1000)/1000;
+      {ProcessElement EL_TRIPLET;}
+    ELSEIF SS(line,1,2)='s1';
+      WRITE 6 'enter B_singl1 [mT], now is '&SF(B_singl1*1000, '(F7.1)');
+      B_singl1 := ReadNumVal(B_singl1*1000)/1000;
+      {ProcessElement EL_SINGLET1;}
+    ELSEIF SS(line,1,2)='s2';
+      WRITE 6 'enter B_singl2 [mT], now is '&SF(B_singl2*1000, '(F7.1)');
+      B_singl2 := ReadNumVal(B_singl2*1000)/1000;
+      {ProcessElement EL_SINGLET2;}
+    ELSEIF SS(line,1,2)='do';
+      WRITE 6 'enter B_SEPdoublet_1 [mT], now is '&SF(
+              B_SEPdoublet_1*1000, '(F7.1)');
+      B_SEPdoublet_1 := ReadNumVal(B_SEPdoublet_1*1000)/1000;
+      WRITE 6 'enter B_SEPdoublet_2 [mT], now is '&SF(
+              B_SEPdoublet_2*1000, '(F7.1)');
+      B_SEPdoublet_2 := ReadNumVal(B_SEPdoublet_2*1000)/1000;
+      {ProcessElement EL_DOUBLET;}
+    ELSEIF SS(line,1,2)='w1';
+      WRITE 6 'enter U_SEPWF1 total [kV], now is '&SF(
+              U_SEPWF1/1000, '(F5.1)');
+      U_SEPWF1 := ReadNumVal(U_SEPWF1/1000)*1000;
+      {ProcessElement EL_SEPWF1;}
+    ELSEIF SS(line,1,2)='w2';
+      WRITE 6 'enter U_SEPWF2 total [kV], now is '&SF(
+              U_SEPWF2/1000, '(F5.1)');
+      U_SEPWF2 := ReadNumVal(U_SEPWF2/1000)*1000;
+      {ProcessElement EL_SEPWF2;}
+    ELSEIF SS(line,1,2)='x ';
+      i:=1;
+    ENDIF;
+
+{
+    IF i=0;
+      UnityMap;
+      LOOP i first_element last_element;
+        ProcessElement i;
+      ENDLOOP;
+    ENDIF;
+}
+  ENDPROCEDURE;  {SetFields}
+
+
+{-----------------------------------------------------------------------}
+  PROCEDURE ChangeElementRange;
+    VARIABLE i       1;
+    VARIABLE j       1;
+    VARIABLE row     1;
+    VARIABLE cond1   1;
+    VARIABLE cond2   1;
+    VARIABLE default 1;
+    VARIABLE txt    80;
+
+    i   := PHYSICAL_FIRST_ELEMENT;
+    row := 1;
+    WHILE i<PHYSICAL_LAST_ELEMENT+1;
+      IF row=1;
+        IF SS(ELEMENTNAME(i), 1, 3)#'DL_';
+          txt :=     SF(i,'(I2)')&': '&SS(ELEMENTNAME(i), 1, 22);
+          row := 2;
+        ENDIF;
+      ELSEIF row=2;
+        IF SS(ELEMENTNAME(i), 1, 3)#'DL_';
+          LOOP j 1 26-LENGTH(txt);
+            txt := txt&' ';
+          ENDLOOP;
+          txt := txt&SF(i,'(I2)')&': '&SS(ELEMENTNAME(i), 1, 22);
+          row := 3;
+        ENDIF;
+      ELSEIF row=3;
+        IF SS(ELEMENTNAME(i), 1, 3)#'DL_';
+          LOOP j 1 52-LENGTH(txt);
+            txt := txt&' ';
+          ENDLOOP;
+          txt := txt&SF(i,'(I2)')&': '&SS(ELEMENTNAME(i), 1, 22);
+          row := 4;
+        ENDIF;
+      ENDIF;
+      IF row=4;
+        WRITE 6 txt;
+        row := 1;
+      ENDIF;
+      i:=i+1;
+    ENDWHILE;
+    IF row>1;   {text in first rows is not printed yet}
+      WRITE 6 txt;
+    ENDIF;
+
+    WRITE 6
+ '+-------------------------------------------------------------------------+'
+ '| Missing numbers represent drift lengths between the elements; of course |'
+ '| these can also be chosen as first/last element!                         |'
+ '| After entering a NEGATIVE NUMBER you can choose a position *inside* the |'
+ '| corresponding element as calculation start/end point. This makes only   |'
+ '| sense for Wien filters, dipole magnets, and of course for drift lengths.|'
+ '+-------------------------------------------------------------------------+';
+
+
+    txt := 'Enter No. of first element (now is '&SF(first_element,'(I2)')&': ';
+    txt:=txt&ELEMENTNAME(first_element);
+    IF element_start(first_element)>0;
+      txt:=txt&' starting at'&SF(element_start(first_element)*100,
+                                 '(F6.1)')&'cm';
+    ENDIF;
+    WRITE 6 txt&'):';
+    default := first_element;
+    LTRUE cond1;
+    LTRUE cond2;
+    WHILE cond1+cond2;
+      i := INT(ReadNumVal(default));
+      cond1 := ABS(i)<PHYSICAL_FIRST_ELEMENT;
+      cond2 := ABS(i)>PHYSICAL_LAST_ELEMENT;
+      IF cond1+cond2;
+        WRITE 6
+   'absolute value must be greater than '&SF(PHYSICAL_FIRST_ELEMENT-1,'(I2)')
+   '                      and less than '&SF(PHYSICAL_LAST_ELEMENT+1, '(I2)');
+      ENDIF;
+    ENDWHILE;
+    first_element := ABS(i);
+    
+    IF i<0;
+      i := -i;
+      ProcessElement i;
+      txt := SF(chamberlen*100, '(F6.1)');
+      WRITE 6
+      'Length of element '&ELEMENTNAME(i)&' seems to be'&txt&'cm.';
+      IF chamberlen>0;
+        WRITE 6
+          'At which point from the beginning should the calculation start?'
+          'Enter length [cm]:';
+        LTRUE cond1;
+        LTRUE cond2;
+        WHILE cond1+cond2;
+          j := 0.01*ReadNumVal(100*element_start(i));
+          cond1 := j<0;
+          cond2 := j>chamberlen;
+          IF cond1+cond2;
+            WRITE 6 'absolute value must be greater than '&SF(0, '(F6.1)')
+                    '                      and less than '&txt;
+          ENDIF;
+        ENDWHILE;
+        element_start(i):=j;
+      ELSEIF 1=1;
+        WRITE 6
+        'I will include this element in the calculation and graphics display.';
+      ENDIF;
+    ELSEIF 1=1;
+      IF first_element#default;
+        element_start(default):=0;
+      ENDIF;
+    ENDIF;
+
+{*****
+    element_stop(i):=0;
+*****}
+
+    txt := 'Enter No. of last element (now is '&SF(last_element,'(I2)')&': ';
+    txt:=txt&ELEMENTNAME(last_element);
+    IF element_stop(last_element)>0;
+      txt:=txt&' ending at'&SF(element_stop(last_element)*100,
+                               '(F6.1)')&'cm';
+    ENDIF;
+    WRITE 6 txt&'):';
+    default := last_element;
+    LTRUE cond1;
+    LTRUE cond2;
+    WHILE cond1+cond2;
+      i := INT(ReadNumVal(default));
+      cond1 := ABS(i)>PHYSICAL_LAST_ELEMENT;
+      cond2 := ABS(i)<first_element;
+      IF cond1+cond2;
+        WRITE 6
+   'absolute value must be greater than '&SF(first_element-1,'(I2)')
+   '                      and less than '&SF(PHYSICAL_LAST_ELEMENT+1,'(I2)');
+      ENDIF;
+    ENDWHILE;
+    last_element := ABS(i);
+
+    LOOP j first_element+1 last_element-1;
+      element_start(j) := 0;
+      element_stop(j)  := 0;
+    ENDLOOP;
+
+    IF i<0;
+      i := -i;
+      ProcessElement i;
+      txt := SF(chamberlen*100, '(F6.1)');
+      WRITE 6
+      'Length of element '&ELEMENTNAME(i)&' seems to be'&txt&'cm.';
+      IF chamberlen>0;
+        WRITE 6
+          'At which point from the beginning should the calculation end?'
+          'Enter length [cm]:';
+        LTRUE cond1;
+        LTRUE cond2;
+        WHILE cond1+cond2;
+          j := 0.01*ReadNumVal(100*element_stop(i));
+          cond1 := j<0;
+          cond2 := j>chamberlen;
+          IF cond1+cond2;
+            WRITE 6 'absolute value must be greater than '&SF(0, '(F6.1)')
+                    '                      and less than '&txt;
+          ENDIF;
+        ENDWHILE;
+        element_stop(i):=j;
+      ELSEIF 1=1;
+        WRITE 6
+        'I will include this element in the calculation and graphics display.';
+      ENDIF;
+    ELSEIF 1=1;
+      IF last_element#default;
+        element_stop(default):=0;
+      ENDIF;
+    ENDIF;
+
+  ENDPROCEDURE;  {ChangeElementRange}
+
+
+{-----------------------------------------------------------------------}
+  PROCEDURE CalcBeamParamsAtGT;
+    VARIABLE i     1;
+    VARIABLE k     1;
+    VARIABLE x     1;
+    VARIABLE y     1;
+    VARIABLE xp    1;
+    VARIABLE yp    1;
+    VARIABLE xmax  1;
+    VARIABLE ymax  1;
+    VARIABLE xpmax 1;
+    VARIABLE ypmax 1;
+    VARIABLE xmin  1;
+    VARIABLE ymin  1;
+    VARIABLE xpmin 1;
+    VARIABLE ypmin 1;
+    VARIABLE txt  80;
+
+    xmax  := -100;
+    ymax  := -100;
+    xpmax := -100;
+    ypmax := -100;
+    xmin  :=  100;
+    ymin  :=  100;
+    xpmin :=  100;
+    ypmin :=  100;
+
+    IF (last_element+1<EL_GASTARGET)+(first_element>EL_GASTARGET);
+      txt := '***ERROR: element before gastarget (element no. ';
+      txt:= txt&SF(EL_GASTARGET-1,'(I2)');
+      WRITE 6 txt&') is not in element range';
+    ELSEIF 1=1;
+
+      WRITE 6 'please wait ...';
+
+      {-------------------------------------------------------}     
+      { loop setting the variable MAP_i(i) and dim(i)         }     
+      { for map and vacuum chamber size of the i'th element   }
+      {-------------------------------------------------------}     
+
+      LOOP i first_element last_element;
+        UnityMap;
+        ProcessElement i;
+      ENDLOOP;
+
+      LOOP k 1 N_ray_max;
+        ClearRays;
+        SelectRay Ra(k,1) Ra(k,2) Ra(k,3) Ra(k,4) Ra(k,5)
+                  Ra(k,6) Ra(k,7) Ra(k,8) Ra(k,9);
+        UnityMap;
+        LOOP i first_element EL_GASTARGET-1;
+          ApplyMap_i i;
+        ENDLOOP;
+        VELGET RAY(1) 2 x;
+        VELGET RAY(2) 2 xp;
+        VELGET RAY(3) 2 y;
+        VELGET RAY(4) 2 yp;
+        IF x>xmax;
+          xmax := x;
+        ENDIF;
+        IF xp>xpmax;
+          xpmax := xp;
+        ENDIF;
+        IF y>ymax;
+          ymax := y;
+        ENDIF;
+        IF yp>ypmax;
+          ypmax := yp;
+        ENDIF;
+        IF x<xmin;
+          xmin := x;
+        ENDIF;
+        IF xp<xpmin;
+          xpmin := xp;
+        ENDIF;
+        IF y<ymin;
+          ymin := y;
+        ENDIF;
+        IF yp<ypmin;
+          ypmin := yp;
+        ENDIF;
+        {******
+        txt:=       '   xp('&SF(k,'(I4)')&')='&SF(xp*1000,'(F5.1)')&' mrad';
+        WRITE 6 txt&'   yp('&SF(k,'(I4)')&')='&SF(yp*1000,'(F5.1)')&' mrad';
+        ******}
+        IF k/100=INT(k/100);
+          txt:='';
+          LOOP i 1 (N_ray_max-k)/100+1;
+            txt:=txt&'*';
+          ENDLOOP;
+          WRITE 6 SF(N_ray_max-k,'(I5)')&txt;
+        ENDIF;
+      ENDLOOP;
+
+
+      x_max  := xmax;
+      y_max  := ymax;
+      x_min  := xmin;
+      y_min  := ymin;
+      xp_max := xpmax;
+      yp_max := ypmax;
+      xp_min := xpmin;
+      yp_min := ypmin;
+
+
+{
+      UnityMap;
+      LOOP i first_element EL_GASTARGET-1;
+        ProcessElement i;
+      ENDLOOP;
+    
+      LOOP i 1 N_ray_max;
+        xp := Ra(i,2);
+        yp := Ra(i,4);
+        IF ABS(xp)>xpmax; xpmax := ABS(xp); ENDIF;
+        IF ABS(yp)>ypmax; ypmax := ABS(yp); ENDIF;
+        txt:=       '   xp('&SF(i,'(I4)')&')='&SF(xp*1000,'(F5.1)')&' mrad';
+        WRITE 6 txt&'   yp('&SF(i,'(I4)')&')='&SF(yp*1000,'(F5.1)')&' mrad';
+      ENDLOOP;
+}
+    
+      txt := '    xmin ='&SF(xmin*1000,'(F6.1)')&' mm    ';
+      txt := txt&'xpmin ='&SF(xpmin*1000,'(F6.1)')&' mrad';
+      WRITE 6 '' txt;
+      txt := '    xmax ='&SF(xmax*1000,'(F6.1)')&' mm    ';
+      txt := txt&'xpmax ='&SF(xpmax*1000,'(F6.1)')&' mrad';
+      WRITE 6 txt;
+      txt := '    ymin ='&SF(ymin*1000,'(F6.1)')&' mm    ';
+      txt := txt&'ypmin ='&SF(ypmin*1000,'(F6.1)')&' mrad';
+      WRITE 6 txt;
+      txt := '    ymax ='&SF(ymax*1000,'(F6.1)')&' mm    ';
+      txt := txt&'ypmax ='&SF(ypmax*1000,'(F6.1)')&' mrad';
+      WRITE 6 txt '';
+
+    ENDIF;
+  ENDPROCEDURE;  {CalcBeamParamsAtGT}
+  
+
+{-----------------------------------------------------------------------}
+  PROCEDURE AlignElements;
+    VARIABLE i        1;
+    VARIABLE j        1;
+    VARIABLE row      1;
+    VARIABLE txt     80;
+    VARIABLE element  1;
+    VARIABLE cond1    1;
+    VARIABLE cond2    1;
+    VARIABLE dx       1;
+    VARIABLE dy       1;
+    VARIABLE ax       1;
+    VARIABLE ay       1;
+    VARIABLE angle    1;
+    VARIABLE inpval  40;
+
+    i    :=1;
+    row := 1;
+    WHILE i<PHYSICAL_LAST_ELEMENT+1;
+      IF row=1;
+        IF SS(ELEMENTNAME(i), 1, 3)#'DL_';
+          txt :=     SF(i,'(I2)')&': '&SS(ELEMENTNAME(i), 1, 22);
+          row := 2;
+        ENDIF;
+      ELSEIF row=2;
+        IF SS(ELEMENTNAME(i), 1, 3)#'DL_';
+          LOOP j 1 26-LENGTH(txt);
+            txt := txt&' ';
+          ENDLOOP;
+          txt := txt&SF(i,'(I2)')&': '&SS(ELEMENTNAME(i), 1, 22);
+          row := 3;
+        ENDIF;
+      ELSEIF row=3;
+        IF SS(ELEMENTNAME(i), 1, 3)#'DL_';
+          LOOP j 1 52-LENGTH(txt);
+            txt := txt&' ';
+          ENDLOOP;
+          txt := txt&SF(i,'(I2)')&': '&SS(ELEMENTNAME(i), 1, 22);
+          row := 4;
+        ENDIF;
+      ENDIF;
+      IF row=4;
+        WRITE 6 txt;
+        row := 1;
+      ENDIF;
+      i:=i+1;
+    ENDWHILE;
+    IF row>1;   {text in first rows is not printed yet}
+      WRITE 6 txt;
+    ENDIF;
+
+    WRITE 6 'Set misalignment for which element (<ENTER>=back to menu)?';
+    element:=0;
+    LTRUE cond1;
+    LTRUE cond2;
+    WHILE cond1+cond2;
+      element := INT(ReadNumVal(element));
+      cond1 := element<PHYSICAL_FIRST_ELEMENT;
+      cond2 := element>PHYSICAL_LAST_ELEMENT;
+      IF element=0;
+        LFALSE cond1;
+      ENDIF;
+      IF cond1+cond2;
+        WRITE 6 'must be greater than '&SF(PHYSICAL_FIRST_ELEMENT-1,'(I2)');
+        WRITE 6 '       and less than '&SF(PHYSICAL_LAST_ELEMENT+1, '(I2)');
+      ENDIF;
+    ENDWHILE;
+
+    IF element#0;
+      dx   :=element_deviation(element,1);
+      dy   :=element_deviation(element,2);
+      ax   :=element_deviation(element,3);
+      ay   :=element_deviation(element,4);
+      angle:=element_deviation(element,5);
+      txt := 'current axis offset, tilt angle and axis rotation angle for ';
+      WRITE 6 txt&ELEMENTNAME(element)&' are:';
+      WRITE 6 ' offset dx='&SF(1000*dx,   '(F5.2)')&'mm';
+      WRITE 6 ' offset dy='&SF(1000*dy,   '(F5.2)')&'mm';
+      WRITE 6 '   tilt ax='&SF(1000*ax,   '(F5.2)')&'mrad';
+      WRITE 6 '   tilt ay='&SF(1000*ay,   '(F5.2)')&'mrad';
+      WRITE 6 'rot. angle='&SF(     angle,'(F5.2)')&'deg';
+
+      WRITE 6 '' 'values are set to 0 if you press <ENTER>!';
+
+      inpval:='';
+      WRITE 6 '  enter offset dx [mm]:';
+      WHILE TYPE(inpval)#TYPE(1);
+        READ 5 inpval;
+        IF TYPE(inpval)#TYPE(1);
+          WRITE 6 ' enter a numerical value or press <ENTER> to reset to 0!';
+        ENDIF;
+      ENDWHILE;
+      dx:=inpval/1000;
+
+      inpval:='';
+      WRITE 6 '  enter offset dy [mm]:';
+      WHILE TYPE(inpval)#TYPE(1);
+        READ 5 inpval;
+        IF TYPE(inpval)#TYPE(1);
+          WRITE 6 ' enter a numerical value or press <ENTER> to reset to 0!';
+        ENDIF;
+      ENDWHILE;
+      dy:=inpval/1000;
+
+      inpval:='';
+      WRITE 6 '    enter tilt ax [mrad]:';
+      WHILE TYPE(inpval)#TYPE(1);
+        READ 5 inpval;
+        IF TYPE(inpval)#TYPE(1);
+          WRITE 6 ' enter a numerical value or press <ENTER> to reset to 0!';
+        ENDIF;
+      ENDWHILE;
+      ax:=inpval/1000;
+
+      inpval:='';
+      WRITE 6 '    enter tilt ay [mrad]:';
+      WHILE TYPE(inpval)#TYPE(1);
+        READ 5 inpval;
+        IF TYPE(inpval)#TYPE(1);
+          WRITE 6 ' enter a numerical value or press <ENTER> to reset to 0!';
+        ENDIF;
+      ENDWHILE;
+      ay:=inpval/1000;
+
+      inpval:='';
+      WRITE 6 ' enter rot. angle [deg]:';
+      WHILE TYPE(inpval)#TYPE(1);
+        READ 5 inpval;
+        IF TYPE(inpval)#TYPE(1);
+          WRITE 6 ' enter a numerical value or press <ENTER> to reset to 0!';
+        ENDIF;
+      ENDWHILE;
+      angle:=inpval/1;
+
+      element_deviation(element,1):=dx;
+      element_deviation(element,2):=dy;
+      element_deviation(element,3):=ax;
+      element_deviation(element,4):=ay;
+      element_deviation(element,5):=angle;
+    ENDIF;
+
+  ENDPROCEDURE;  {AlignElements}
+
+
+{*************************************************************************}
+{                   routines for optimizing                               }
+{*************************************************************************}
+
+  PROCEDURE Optimize;
+    VARIABLE OBJ   1;
+    VARIABLE i     1;
+    VARIABLE line  2;
+    VARIABLE MAP_1 1000 8;
+    VARIABLE MAP_2 1000 8;
+    VARIABLE MAP_3 1000 8;
+
+    {--------------------------------------------------------}
+    FUNCTION RequiredElementsInRange e1 e2;
+      VARIABLE errtxt 80;
+
+      IF (first_element>e1)+(last_element<e2);
+        errtxt:='***ERROR: elements from '&SF(e1,'(I2)')&' (';
+        errtxt:=errtxt&ELEMENTNAME(e1)&')';
+        WRITE 6 errtxt;
+        errtxt:='                   upto '&SF(e2,'(I2)')&' (';
+        errtxt:=errtxt&ELEMENTNAME(e2)&')';
+        WRITE 6 errtxt;
+        WRITE 6 'are required in range between';
+        errtxt:='first element (now is ';
+        errtxt:=errtxt&SF(first_element,'(I2)')&': ';
+        errtxt:=errtxt&ELEMENTNAME(first_element)&') and';
+        WRITE 6 errtxt;
+        errtxt:=' last element (now is ';
+        errtxt:=errtxt&SF(last_element,'(I2)')&': ';
+        errtxt:=errtxt&ELEMENTNAME(last_element)&')';
+        WRITE 6 errtxt;
+        LFALSE RequiredElementsInRange;
+      ELSEIF 1=1;
+        LTRUE  RequiredElementsInRange;
+      ENDIF;
+    ENDFUNCTION;  {RequiredElementsInRange}
+
+
+    {--------------------------------------------------------}
+    PROCEDURE fit_trip_FC1;
+      
+      WRITE 6 ' fit of trip -> FC1 ...';
+
+      IF RequiredElementsInRange(EL_TRIPLET-1, EL_TRIPLET+1);
+        FIT B_trip_ex B_trip_in;
+          UnityMap;
+          ProcessElement EL_TRIPLET-1;
+          ProcessElement EL_TRIPLET;
+          ProcessElement EL_TRIPLET+1;
+          OBJ := ABS(ME(1,12))+ABS(ME(3,34));
+        ENDFIT 1E-10 10000 1 OBJ;
+
+        WRITE 6 'B_trip_ex = '&SF(B_trip_ex*1000, '(F8.3)');
+        WRITE 6 'B_trip_in = '&SF(B_trip_in*1000, '(F8.3)');
+
+      ENDIF;
+    ENDPROCEDURE;  {fit_trip_FC1}
+
+    {--------------------------------------------------------}
+    PROCEDURE fit_tripl;
+      
+      WRITE 6 ' fit of triplet ...';
+
+      IF RequiredElementsInRange(EL_GASTARGET+1, EL_DL_SINGLET1_DIPOLE);
+        UnityMap;
+        LOOP i EL_GASTARGET+1 EL_TRIPLET-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_1;
+
+        UnityMap;
+        LOOP i EL_TRIPLET+1 EL_DL_SINGLET1_DIPOLE;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_2;
+
+        FIT B_trip_ex B_trip_in;
+          UnityMap;
+          ApplyMap MAP_1;
+          ProcessElement EL_TRIPLET;
+          ApplyMap MAP_2;
+          OBJ := ABS(ME(1,2))+ABS(ME(3,4)); {in front of dipole}
+        ENDFIT 1E-5 1000 1 OBJ;
+      ENDIF;
+
+      WRITE 6 'B_trip_ex = '&SF(B_trip_ex*1000, '(F8.3)');
+      WRITE 6 'B_trip_in = '&SF(B_trip_in*1000, '(F8.3)');
+
+    ENDPROCEDURE;  {fit_tripl}
+
+    {--------------------------------------------------------}
+    PROCEDURE fit_singlet1;
+      
+      WRITE 6 ' fit of singlet1 ...';
+
+      IF RequiredElementsInRange(EL_GASTARGET+1, EL_SLIT_DIPOLE);
+        UnityMap;
+        LOOP i EL_GASTARGET+1 EL_SINGLET1-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_1;
+
+        UnityMap;
+        LOOP i EL_SINGLET1+1 EL_SLIT_DIPOLE;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_2;
+
+        FIT B_singl1;
+          UnityMap;
+          ApplyMap MAP_1;
+          ProcessElement EL_SINGLET1;
+          ApplyMap MAP_2;
+          OBJ := ABS(ME(2,6));
+        ENDFIT 1E-12 1000 2 OBJ;
+
+        WRITE 6 'B_singl1 = '&SF(B_singl1*1000, '(F8.3)');
+
+      ENDIF;
+    ENDPROCEDURE;  {fit_singlet1}
+
+    {--------------------------------------------------------}
+    PROCEDURE fit_SEPWF1;
+      
+      WRITE 6 ' fit of SEPWF1 ...';
+
+      IF RequiredElementsInRange(EL_SEPWF1, EL_DIPOLE);
+        UnityMap;
+        LOOP i first_element EL_SEPWF1-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_1;
+
+        UnityMap;
+        LOOP i EL_SEPWF1+1 EL_DIPOLE;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_2;
+
+        FIT U_SEPWF1;
+          UnityMap;
+          ApplyMap MAP_1;
+          ProcessElement EL_SEPWF1;
+          ApplyMap MAP_2;
+          IF debugging;
+            WRITE 6 ME(2,6);
+          ENDIF;
+          OBJ := ABS(ME(2,6));
+        ENDFIT 1E-12 1000 2 OBJ;
+
+        WRITE 6 'U_SEPWF1     = '&SF(U_SEPWF1/1000,      '(F10.5)');
+        WRITE 6 'B_SEPWF1     =   '&SF(B_SEPWF1*1000,     '(F8.3)');
+        WRITE 6 'B_SEPWF1_exp =   '&SF(B_SEPWF1_exp*1000, '(F8.3)');
+
+      ENDIF;
+
+    ENDPROCEDURE;  {fit_SEPWF1}
+    
+    {--------------------------------------------------------}
+    PROCEDURE fit_SEPWF2;
+      
+      WRITE 6 ' fit of SEPWF2 ...';
+
+      IF RequiredElementsInRange(EL_SEPWF2, EL_SLIT5_FC4_ICTIN);
+        UnityMap;
+        LOOP i first_element EL_SEPWF2-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_1;
+
+        UnityMap;
+        LOOP i EL_SEPWF2+1 EL_SLIT5_FC4_ICTIN;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_2;
+
+        FIT U_SEPWF2;
+          UnityMap;
+          ApplyMap MAP_1;
+          ProcessElement EL_SEPWF2;
+          ApplyMap MAP_2;
+          OBJ := ABS(ME(1,6));
+        ENDFIT 1E-9 1000 2 OBJ;
+
+        WRITE 6 'U_SEPWF2     = '&SF(U_SEPWF2/1000,      '(F10.5)');
+        WRITE 6 'B_SEPWF2     =   '&SF(B_SEPWF2*1000,     '(F8.3)');
+        WRITE 6 'B_SEPWF2_exp =   '&SF(B_SEPWF2_exp*1000, '(F8.3)');
+
+      ENDIF;
+    ENDPROCEDURE;  {fit_SEPWF2}
+
+    {--------------------------------------------------------}
+    PROCEDURE fit_doubl;
+      
+      WRITE 6 ' fit of doublet ... ABS(ME(1,26))+ABS(ME(3,46))';
+
+      IF RequiredElementsInRange(EL_GASTARGET+1, EL_SLIT5_FC4_ICTIN);
+        UnityMap;
+        LOOP i EL_GASTARGET+1 EL_DOUBLET-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_1;
+
+        UnityMap;
+        LOOP i EL_DOUBLET+1 EL_SLIT5_FC4_ICTIN;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_2;
+
+        FIT B_SEPdoublet_1 B_SEPdoublet_2;
+          UnityMap;
+          ApplyMap MAP_1;
+          ProcessElement EL_DOUBLET;
+          ApplyMap MAP_2;
+          OBJ := ABS(ME(1,26))+ABS(ME(3,46));
+        ENDFIT 1E-6 1000 1 OBJ;
+
+        WRITE 6 'B_SEPdoublet_1 = '&SF(B_SEPdoublet_1*1000, '(F8.3)');
+        WRITE 6 'B_SEPdoublet_2 = '&SF(B_SEPdoublet_2*1000, '(F8.3)');
+
+      ENDIF;
+    ENDPROCEDURE;  {fit_doubl}
+
+    {--------------------------------------------------------}
+    PROCEDURE fit_doublsingl2;
+      WRITE 6 ' fit of doubl + singl2 . ABS(ME(1,26))^2+ABS(ME(3,46))^2';
+{      
+
+      IF RequiredElementsInRange(EL_DOUBLET, EL_SLIT5_FC4_ICTIN);
+        UnityMap;
+        LOOP i first_element EL_DOUBLET-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_1;
+      
+        UnityMap;
+        LOOP i EL_DOUBLET+1 EL_SINGLET2-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_2;
+
+        UnityMap;
+        LOOP i EL_SINGLET2+1 EL_SLIT5_FC4_ICTIN;
+          ProcessElement i;
+        ENDLOOP;
+        DriftLength 0.1;
+        SaveMap MAP_3;
+
+        FIT B_SEPdoublet_1 B_SEPdoublet_2 B_singl2;
+          UnityMap;
+          ApplyMap MAP_1;
+          ProcessElement EL_DOUBLET;
+          ApplyMap MAP_2;
+          ProcessElement EL_SINGLET2;
+          ApplyMap MAP_3;
+          OBJ := (ABS(ME(1,26)))^2+(ABS(ME(3,46)))^2;
+          DriftLength 0.2;
+          OBJ := OBJ + (ABS(ME(1,26)))^2+(ABS(ME(3,46)))^2;
+        ENDFIT 1E-12 1000 1 OBJ;
+
+        WRITE 6 'B_SEPdoublet_1 = '&SF(B_SEPdoublet_1*1000, '(F8.3)');
+        WRITE 6 'B_SEPdoublet_2 = '&SF(B_SEPdoublet_2*1000, '(F8.3)');
+        WRITE 6 'B_singl2  = '&SF(B_singl2, '(F8.6)');
+
+      ENDIF;
+} 
+   ENDPROCEDURE;  {fit_doublsingl2}
+    
+    {--------------------------------------------------------}
+    PROCEDURE fit_singl2;
+      WRITE 6 ' fit of singl2 ...    ME(1,26)+ ME(3,46)';
+{      
+
+      IF RequiredElementsInRange(EL_SINGLET2, EL_SLIT5_FC4_ICTIN);
+        UnityMap;
+        LOOP i first_element EL_SINGLET2-1;
+          ProcessElement i;
+        ENDLOOP;
+        SaveMap MAP_1;
+      
+        UnityMap;
+        LOOP i EL_SINGLET2+1 EL_SLIT5_FC4_ICTIN;
+          ProcessElement i;
+        ENDLOOP;
+        DriftLength 0.2;
+        SaveMap MAP_2;
+
+        FIT B_singl2;
+          UnityMap;
+          ApplyMap MAP_1;
+          ProcessElement EL_SINGLET2;
+          ApplyMap MAP_2;
+          OBJ := ABS(ME(1,26)) + ABS(ME(3,46));
+        ENDFIT 1E-6 1000 1 OBJ;
+
+        WRITE 6 'B_singl2 = '&SF(B_singl2*1000, '(F8.3)');
+
+      ENDIF;
+} 
+   ENDPROCEDURE;  {fit_singl2}
+
+    {--------------------------------------------------------}
+    PROCEDURE fit_everything;
+      VARIABLE choice 1;
+      VARIABLE i      1;
+      VARIABLE yesno  1;
+      VARIABLE N_ray_max_old    1;
+      VARIABLE last_element_old 1;
+      
+      WRITE 6 ' optimize for normal (pilot) beam                  : 1';
+      WRITE 6 ' optimize for high divergence pilot beam           : 2';
+      WRITE 6 ' optimize for symmetric high divergence pilot beam : 3';
+      WRITE 6 ' don''t waste so much time                          : 0';
+      choice := ' ';
+      WHILE TYPE(choice)#TYPE(1);
+        READ 5 choice;
+      ENDWHILE;
+
+      IF     choice=1;
+        fit_singlet1;
+        fit_tripl;
+        fit_doubl;
+
+      ELSEIF choice=2;
+        fit_singlet1;
+        fit_tripl;
+        fit_doubl;
+
+      ELSEIF choice=3;
+        WRITE 6 ''
+                'Sorry, due to a change of priorities this is not functional'
+                'at the moment!'
+                '';
+{*************************************************************
+        WRITE 6 'ATTENTION: This will take a while'
+                '           and still is beta code!'
+                '           Are you sure (99=yes, <ENTER>=no)?';
+        yesno := '';
+        WHILE TYPE(yesno)#TYPE(1);
+          READ 5 yesno;
+        ENDWHILE;
+        IF yesno#99;
+          WRITE 6 'Ok, I did nothing.';
+        ELSEIF N_ray_max<1;
+          WRITE 6 'ERROR: You must define some rays first!';
+        ELSEIF RequiredElementsInRange(EL_GASTARGET, EL_GASTARGET);
+          UnityMap;
+          LOOP i first_element EL_DTLSINGLET1-1;
+            ProcessElement i;
+          ENDLOOP;
+          SaveMap MAP_1;
+
+          UnityMap;
+          LOOP i EL_DTLSINGLET1+1 EL_GASTARGET-1;
+            ProcessElement i;
+          ENDLOOP;
+          SaveMap MAP_2;
+
+          fit_HEdoublet_on_AM;
+          fit_DTLdoublet_on_defocusap;
+          fit_defocdoublet;
+          fit_singlet1;
+          fit_tripl;
+          fit_doubl;
+
+          last_element_old := last_element;
+          last_element := EL_GASTARGET;
+
+          xp_max := 0.1;
+          yp_max := 1;
+
+          N_ray_max_old := N_ray_max;
+          LOOP i 1 N_ray_max;
+            Ra_backup(i,1) := Ra(i,1);
+            Ra_backup(i,2) := Ra(i,2);
+            Ra_backup(i,3) := Ra(i,3);
+            Ra_backup(i,4) := Ra(i,4);
+            Ra_backup(i,5) := Ra(i,5);
+            Ra_backup(i,6) := Ra(i,6);
+            Ra_backup(i,7) := Ra(i,7);
+            Ra_backup(i,8) := Ra(i,8);
+            Ra_backup(i,9) := Ra(i,9);
+          ENDLOOP;
+
+          FIT B_DTLsinglet1;
+            UnityMap;
+            ApplyMap MAP_1;
+            ProcessElement EL_DTLSINGLET1;
+            ApplyMap MAP_2;
+
+{
+            LOOP i EL_DTLSINGLET1+1 EL_GASTARGET;
+              ProcessElement i;
+            ENDLOOP;
+}
+
+            N_ray_max := N_ray_max_old;
+            LOOP i 1 N_ray_max;
+              Ra(i,1) := Ra_backup(i,1);
+              Ra(i,2) := Ra_backup(i,2);
+              Ra(i,3) := Ra_backup(i,3);
+              Ra(i,4) := Ra_backup(i,4);
+              Ra(i,5) := Ra_backup(i,5);
+              Ra(i,6) := Ra_backup(i,6);
+              Ra(i,7) := Ra_backup(i,7);
+              Ra(i,8) := Ra_backup(i,8);
+              Ra(i,9) := Ra_backup(i,9);
+            ENDLOOP;
+
+            CalcTransmission;
+            ReadRaysFromFile 'r_in';
+            CalcAnglesAtGT;
+
+            OBJ := ABS(xp_max/yp_max -1);
+write 6 obj;
+          ENDFIT .0005 1000 2 OBJ;
+
+          last_element := last_element_old;
+          WRITE 6 'READY! Fitted everything, including DTL singlet.';
+        ENDIF;
+*************************************************************}
+      ENDIF;
+
+    ENDPROCEDURE;  {fit_everything}
+
+
+    {-------------------------------------------------------}
+    WRITE 6 '-----------------------------------------------';
+    WRITE 6 '                                       all   al';
+    WRITE 6 '                                  singlet1   s1';
+    WRITE 6 '                                  trip-FC1   t1';
+    WRITE 6 '                                   triplet    t';
+    WRITE 6 '                                   doublet   do';
+    WRITE 6 '                                  singlet2   s2';
+    WRITE 6 '                          doublet + singl2   ds';
+    WRITE 6 '                                    SEPWF1   w1';
+    WRITE 6 '                                    SEPWF2   w2';
+    WRITE 6 '-----------------------------------------------';
+    WRITE 6 'optimize beam optics by fitting everything   fe';
+    WRITE 6 '-----------------------------------------------';
+    WRITE 6 'BACK TO MENU                                  x';
+
+    WHILE TYPE(line)#TYPE(' ');
+      READ 5 line;
+    ENDWHILE;
+
+    IF     SS(line,1,2)='t'; fit_tripl;
+    ELSEIF SS(line,1,2)='s1'; fit_singlet1;
+    ELSEIF SS(line,1,2)='t1'; fit_trip_FC1;
+    ELSEIF SS(line,1,2)='do'; fit_doubl;
+    ELSEIF SS(line,1,2)='s2'; fit_singl2;
+    ELSEIF SS(line,1,2)='ds'; fit_doublsingl2;
+    ELSEIF SS(line,1,2)='w1'; fit_SEPWF1;
+    ELSEIF SS(line,1,2)='w2'; fit_SEPWF2;
+    ELSEIF SS(line,1,2)='al'; fit_singlet1;
+                              fit_tripl;
+                              fit_doublsingl2;
+    ELSEIF SS(line,1,2)='fe'; fit_everything;
+    ENDIF;
+  ENDPROCEDURE;  {Optimize}
+
+
+
+
+  PROCEDURE CheckFieldLimits;
+
+    PROCEDURE LimitError el B_val B_limit;
+      WRITE 6 '>   *** Attention: Field of '&el&' is set to'&SF(
+              B_val*1000,   '(F7.2)')&'mT'
+              '>   ***            but there might be a physical limit of'&SF(
+              B_limit*1000, '(F7.2)')&'mT!';
+    ENDPROCEDURE;  {LimitError}
+
+
+    IF ABS(B_DTLsinglet2)>LIMIT_B_DTLsinglet2;
+      LimitError 'DTL singlet 2'      B_DTLsinglet2    LIMIT_B_DTLsinglet2;
+    ENDIF;
+    IF ABS(B_defocdoublet_1)>LIMIT_B_defocdoublet_1;
+      LimitError 'defoc.doubl.lens 1' B_defocdoublet_1 LIMIT_B_defocdoublet_1;
+    ENDIF;
+    IF ABS(B_defocdoublet_2)>LIMIT_B_defocdoublet_2;
+      LimitError 'defoc.doubl.lens 2' B_defocdoublet_2 LIMIT_B_defocdoublet_2;
+    ENDIF;
+    IF ABS(B_trip_ex)>LIMIT_B_trip_ex;
+      LimitError 'external triplet lens' B_trip_ex      LIMIT_B_trip_ex;
+    ENDIF;
+    IF ABS(B_trip_in)>LIMIT_B_trip_in;
+      LimitError 'internal triplet lens' B_trip_in      LIMIT_B_trip_in;
+    ENDIF;
+    IF ABS(B_singl1)>LIMIT_B_singl1;
+      LimitError 'first sep. singlet'    B_singl1       LIMIT_B_singl1;
+    ENDIF;
+    IF B_singl1<0;
+      WRITE 6
+      '>   *** Attention: Field of singlet 1 seems to have the wrong sign!';
+    ENDIF;
+    IF ABS(B_SEPdoublet_1)>LIMIT_B_SEPdoublet_1;
+      LimitError 'sep. doublet lens 1'   B_SEPdoublet_1 LIMIT_B_SEPdoublet_1;
+    ENDIF;
+    IF ABS(B_SEPdoublet_2)>LIMIT_B_SEPdoublet_2;
+      LimitError 'sep. doublet lens 2'   B_SEPdoublet_2 LIMIT_B_SEPdoublet_2;
+    ENDIF;
+    IF ABS(B_singl2)>LIMIT_B_singl2;
+      LimitError 'second sep. singlet'   B_singl2       LIMIT_B_singl2;
+    ENDIF;
+    IF ABS(B_dipole)>LIMIT_B_dipole;
+      LimitError '60deg. dipole'         B_dipole       LIMIT_B_dipole;
+    ENDIF;
+
+    IF (B_singl1<50/1000)+(B_singl1>88/1000);
+      WRITE 6
+      '>   *** Attention: Field of separator singlet1 is set to an'
+      '>   ***            unusual value. Check!';
+    ENDIF;
+
+  ENDPROCEDURE;  {CheckFieldLimits}
+
+
+
+{*********************************************************}
+{                    OUTPUT ROUTINES                      }
+{*********************************************************}
+
+  PROCEDURE ShowFields;
+    VARIABLE i     1;
+    VARIABLE txt1 50;
+    VARIABLE txt2 50;
+    VARIABLE txt3 50;
+    VARIABLE txt4 80;
+
+{
+    UnityMap;
+    LOOP i first_element last_element;
+      ProcessElement i;
+    ENDLOOP;
+    UnityMap;
+}
+
+    txt4 := '**************************************';
+
+    txt1 := '*  calculated ERNA fields for particles with m =';
+    txt2 := SF(A,'(I3)')&'u, E ='&SF(W, '(F5.2)')&'MeV, q = ';
+    WRITE 6 '' '' txt4&txt4;
+    WRITE 6 txt1&txt2&SF(q, '(I1)')&'e  *';
+    WRITE 6 txt4&txt4 '';
+
+    WRITE 6 '  voltages in kV - magnetic fields in mT';
+
+    txt4 := '   ______________';
+    WRITE 6 txt4;
+ 
+   txt4 := '------------------------------';
+
+    WRITE 6 '--/ triplet      \------------';
+    txt1 := '| B_trip_ex = '&SF(B_trip_ex*1000,   '(F6.1)')&'         |';
+    txt2 := '| B_trip_in = '&SF(B_trip_in*1000,   '(F6.1)')&'         |';
+    WRITE 6 txt1;
+    WRITE 6 txt2;
+    WRITE 6 txt4;
+
+    WRITE 6 '-------/ singlet      \-------';
+    txt2 := '| B_singl1 = '&SF(B_singl1*1000,         '(F6.1)')&'          |';
+{******
+    txt3 := '| B_singl2 = '&SF(B_singl2*1000,         '(F6.1)')&'       |';
+    WRITE 6 txt1&txt2&txt3;
+******}
+    WRITE 6 txt2;
+    WRITE 6 txt4;
+
+    WRITE 6 '------------/ doublet      \--';
+    txt2 := '| B_SEPdoublet_1 = '&SF(B_SEPdoublet_1*1000,     '(F6.1)')&'    |';
+    WRITE 6 txt2;
+    txt2 := '| B_SEPdoublet_2 = '&SF(B_SEPdoublet_2*1000,     '(F6.1)')&'    |';
+    WRITE 6 txt2;
+    WRITE 6 txt4;
+
+    WRITE 6 '--------/ dipoles      \'&txt4;
+    txt1 := '| B_dipole = '&SF(B_dipole*1000,   '(F6.1)')&'         ';
+    txt2 := '| B_dipole_exp  = '&SF(B_dipole_exp*1000, '(F6.1)')&' |';
+    WRITE 6 txt1&txt2;
+    txt1 := '| B_cssm =   '&SF(B_cssm*1000,     '(F6.1)')&'         ';
+    txt2 := '|                        |';
+    WRITE 6 txt1&txt2;
+    WRITE 6 txt4&'------------------------';
+
+    WRITE 6 txt4&'/ Wien filters \'&txt4;
+    txt1 := '| U_SEPWF1 tot = '&SF(U_SEPWF1/1000,     '(F7.3)')&'   ';
+    txt2 := '| B_SEPWF1 = '&SF(B_SEPWF1*1000,         '(F6.1)')&'   ';
+    txt3 := '| B_SEPWF1_exp = '&SF(B_SEPWF1_exp*1000, '(F6.1)')&'   |';
+    WRITE 6 txt1&txt2&txt3;
+    txt1 := '| U_SEPWF2 tot = '&SF(U_SEPWF2/1000,     '(F7.3)')&'   ';
+    txt2 := '| B_SEPWF2 = '&SF(B_SEPWF2*1000,         '(F6.1)')&'   ';
+    txt3 := '| B_SEPWF2_exp =('&SF(B_SEPWF2_exp*1000, '(F6.1)')&')  |';
+    WRITE 6 txt1&txt2&txt3;
+    WRITE 6 txt4&'----------------'&txt4;
+
+  ENDPROCEDURE;  {ShowFields}
+
+
+  {---------------------------------------------------------------}
+  {          writing ref. beam and fields into file               }
+  {---------------------------------------------------------------}
+  PROCEDURE SaveResults;
+    VARIABLE l_1    1;
+    VARIABLE l_2    1;
+    VARIABLE l_tot  1;
+    VARIABLE x_min  1;
+    VARIABLE x_max  1;
+    VARIABLE r_max  1;
+    VARIABLE y_min  1;
+    VARIABLE y_max  1;
+    VARIABLE dummy 80;
+    VARIABLE i      1;
+    VARIABLE p      1;
+    VARIABLE x      1;
+
+
+    FUNCTION FormattedNumber x;
+      VARIABLE fn 8;
+      
+      IF ABS(x)<1;
+        IF x<0;
+          fn := SF(-x, '(F8.5)');
+          fn := ' -'&SS(fn, 3, 8);
+        ELSEIF 1=1;
+          fn := SF( x, '(F8.5)');
+        ENDIF;
+      ELSEIF 1=1;
+        fn := ' *******';
+      ENDIF;
+      FormattedNumber := fn;
+    ENDFUNCTION;
+
+    WRITE 6 'enter output filename ';
+    READ  5 filename;
+    p := 0;
+    LOOP i 1 LENGTH(filename);
+      IF SS(filename, i, i)=' ';
+        IF p=0;
+          p := i;
+        ENDIF;
+      ENDIF;
+    ENDLOOP;
+
+    UnityMap;
+    LOOP i first_element last_element;
+      ProcessElement i;
+    ENDLOOP;
+    SaveMap MAP_dummy;
+
+    filename := SS(filename, 1, p-1)&'.fields';
+    WRITE 6 ' '
+            'writing fields           into '&SESSIONPREFIX(1)&filename&' ...';
+    OPENF 15 SESSIONPREFIX(1)&filename 'unknown';
+
+    WRITE 15 '----------- ERNA fields (>=V1.8)--';
+    WRITE 15 ' U_SEPWF1            [V] = '&SF(U_SEPWF1,        '(F8.1)');
+    WRITE 15 ' B_SEPWF1            [T] = '&SF(B_SEPWF1,        '(F8.5)');
+    WRITE 15 ' B_SEPWF1_exp        [T] = '&SF(B_SEPWF1_EXP,    '(F8.5)');
+    WRITE 15 ' U_SEPWF2            [V] = '&SF(U_SEPWF2,        '(F8.1)');
+    WRITE 15 ' B_SEPWF2            [T] = '&SF(B_SEPWF2,        '(F8.5)');
+    WRITE 15 ' B_SEPWF2_exp        [T] = '&SF(B_SEPWF2_EXP,    '(F8.5)');
+    WRITE 15 ' B_SEPsinglet1       [T] = '&SF(B_singl1,        '(F8.5)');
+    WRITE 15 ' B_SEPsinglet2       [T] = '&SF(B_singl2,        '(F8.5)');
+    WRITE 15 ' B_SEPdoublet_1      [T] = '&SF(B_SEPdoublet_1,  '(F8.5)');
+    WRITE 15 ' B_SEPdoublet_2      [T] = '&SF(B_SEPdoublet_2,  '(F8.5)');
+    WRITE 15 ' B_tripl_ex          [T] = '&SF(B_trip_ex,       '(F8.5)');
+    WRITE 15 ' B_tripl_in          [T] = '&SF(B_trip_in,       '(F8.5)');
+    WRITE 15 ' B_cssm              [T] = '&SF(B_cssm,          '(F8.5)');
+    WRITE 15 ' B_dipole            [T] = '&SF(B_dipole,        '(F8.5)');
+    WRITE 15 ' B_dipole_exp        [T] = '&SF(B_dipole_exp,    '(F8.5)');
+    WRITE 15 '-------------- beam ---------------';
+    WRITE 15 ' A (mass)            [u] = '&SF(A,               '(F8.3)');
+    WRITE 15 ' W (energy)        [MeV] = '&SF(W,               '(F8.3)');
+    WRITE 15 ' q (charge)          [e] = '&SF(q,               '(F8.3)');
+    WRITE 15 '-----------------------------------';
+    WRITE 15 ' calculation order       ='&SF(calc_order,      '(I2)');
+    WRITE 15 ' phase space dim         ='&SF(phase_space_dim, '(I2)');
+    WRITE 15 ' No of parameters        ='&SF(N_parameter,     '(I2)');
+    WRITE 15 ' fringe field mode       ='&SF(fringefield_mode,'(I2)');
+    
+    IF TYPE(raysfile)=TYPE(' ');
+      WRITE 15 '----------- filenames -------------';
+      WRITE 15 ' ray input file name   = '&raysfile;
+    ENDIF;
+    WRITE 15 '-----------------------------------';
+    CLOSEF 15;
+
+    filename := SS(filename, 1, p-1)&'.rstart';
+    WRITE 6 'writing ray start params into '&SESSIONPREFIX(1)&filename&' ...';
+    OPENF 15 SESSIONPREFIX(1)&filename 'unknown';
+    filename := SS(filename, 1, p-1)&'.rstop';
+    WRITE 6 'writing ray stop  params into '&SESSIONPREFIX(1)&filename&' ...';
+    OPENF 16 SESSIONPREFIX(1)&filename 'unknown';
+
+    LOOP i 1 N_ray_max;
+      ClearRays;
+      SelectRay Ra(i,1) Ra(i,2) Ra(i,3) Ra(i,4) Ra(i,5)
+                Ra(i,6) Ra(i,7) Ra(i,8) Ra(i,9);
+      dummy:=SF(i, '(I7)');
+      VELGET RAY(1) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(2) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(3) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(4) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(5) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(6) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(7) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(8) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      x := Ra(i, 9);
+      dummy := dummy&SF(x, '(I2)');
+      WRITE 15 dummy;
+
+      ApplyMap Map_dummy;
+      dummy:=SF(i, '(I7)');
+      VELGET RAY(1) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(2) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(3) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(4) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(5) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(6) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(7) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      VELGET RAY(8) 2 x;
+      dummy := dummy&FormattedNumber(x);
+      x := Ra(i, 9);
+      dummy := dummy&SF(x, '(I2)');
+      WRITE 16 dummy;
+    ENDLOOP;
+
+    LOOP i 15 16;
+      WRITE i '#';
+      IF N_ray_max>0;
+        WRITE i
+  '1     7|9    15|17   23|25   31|33   39|41   47|49   55|57   63|65   71|c'
+  '-------+-------+-------+-------+-------+-------+-------+-------+-------+o'
+  '   n   |   x   |   xp  |   y   |   yp  |   T   |   D   |  G    |   Z   |l'
+  '       |       |       |       |       | time  |energy | mass  |charge |r';
+      ELSEIF 1=1;
+        WRITE i 'There were no rays defined!';
+      ENDIF;
+    ENDLOOP;
+    CLOSEF 15;
+    CLOSEF 16;
+
+    {--------------------------------------------------------------}
+    {                 writing geometry into 'geometry.dat'         }
+    {--------------------------------------------------------------}
+    filename := SS(filename, 1, p-1)&'.geometry';
+    WRITE 6 'writing geometry         into '&SESSIONPREFIX(1)&filename&' ...';
+    OPENF 15 SESSIONPREFIX(1)&filename 'unknown';
+    WRITE 15 'This is file '&SESSIONPREFIX(1)&filename;
+    WRITE 15 '';
+    WRITE 15 '                 ____  _____';
+    WRITE 15 '                |      |    \  |\   |    /\';
+    WRITE 15 '                |___   |____/  | \  |   /  \';
+    WRITE 15 '                |      |   \   |  \ |  /____\';
+    WRITE 15 '                |____  |    \  |   \| /      \';
+    WRITE 15 '';
+    WRITE 15 '                    G  E  O  M  E  T  R  Y';
+    WRITE 15 '';
+    WRITE 15 '------------------------------------------------------------';
+    WRITE 15 ' length = effective length [m]';
+    WRITE 15 ' x_min ... r_max = vac. chamber or slit size (not pole gap)';
+    WRITE 15 ' ';
+    dummy := '  i  length   x_min   x_max';
+    dummy := dummy&'   y_min   y_max   r_max element';
+    WRITE 15 dummy;
+    UnityMap;
+    l_1 := 0;
+    l_2 := 0;
+    LOOP i first_element last_element;
+      ProcessElement i;
+      IF element_stop(i)>0;
+        chamberlen := element_stop(i);
+      ENDIF;
+      chamberlen := chamberlen-element_start(i);
+      VELGET dim(i) 1 x_min;
+      VELGET dim(i) 2 x_max;
+      VELGET dim(i) 3 y_min;
+      VELGET dim(i) 4 y_max;
+      VELGET dim(i) 5 r_max;
+      dummy := SF(chamberlen,'(F7.4)');
+      dummy := dummy&' '&SF(x_min,'(F7.4)')&' '&SF(x_max,'(F7.4)');
+      dummy := dummy&' '&SF(y_min,'(F7.4)')&' '&SF(y_max,'(F7.4)');
+      dummy := dummy&' '&SF(r_max,'(F7.4)')&' '&name;
+      WRITE 15  SF(i,'(I3)')&' '&dummy;
+      l_2 := l_2 + chamberlen;
+      IF i=EL_DIPOLE;
+        l_1 := l_2 - 0.5*chamberlen;
+      ENDIF;
+    ENDLOOP;
+    l_tot := l_2;
+    l_2   := l_2 - l_1;
+    WRITE 15 '';
+    IF (first_element<EL_DIPOLE)*(last_element>EL_DIPOLE);
+      dummy := ELEMENTNAME(first_element)&'                       ';
+      dummy :=       'length1 ('&SS(dummy, 1, 25);
+      dummy := dummy&'-> dipole center            ) = '&SF(l_1,'(F7.3)')&'m';
+      WRITE 15 dummy;
+      dummy := ELEMENTNAME(last_element)&'                       ';
+      dummy := SS(dummy, 1, 25)&') = '&SF(l_2,'(F7.3)')&'m';
+      dummy := 'length2 (dipole center            -> '&dummy;
+      WRITE 15 dummy;
+    ENDIF;
+    dummy := 'total length                                            ';
+    dummy := dummy&'        = '&SF(l_tot,'(F7.3)')&'m';
+    WRITE 15 dummy;
+    CLOSEF 15;
+
+    {-------------------------------------------------------------}
+    {                 writing graphic files                       }
+    {-------------------------------------------------------------}
+    WRITE 6 'writing graphics         into PIC00x.ps ...';
+    PlotX   -10 0;
+    PlotY   -10 0;
+    PlotLab -10 1;
+
+    WRITE 6 'OK!' '';
+
+    session_number := session_number+1;
+  ENDPROCEDURE;  {SaveResults}
+
+
+{----------------------------------------------------}
+  PROCEDURE ToggleDebugging;
+    VARIABLE txt 32;
+
+    IF debugging;
+      txt:='OFF';
+      LFALSE debugging;
+    ELSEIF 1=1;
+      txt:='ON';
+      LTRUE debugging;
+    ENDIF;
+
+    WRITE 6 '';
+    WRITE 6 '*** debugging is now '&txt;
+    WRITE 6 '';
+  ENDPROCEDURE;  {ToggleDebugging}
+
+
+{----------------------------------------------------}
+  PROCEDURE ReverseSystem;
+    VARIABLE txt 32;
+    VARIABLE db   1;
+
+    IF ComputeReversedSystem;
+      txt:='OFF';
+      LFALSE ComputeReversedSystem;
+      InitConstants;
+    ELSEIF 1=1;
+      txt:='ON';
+      LTRUE ComputeReversedSystem;
+    ENDIF;
+
+    db := debugging;
+    InitConstants;
+    debugging := db;
+
+    db := first_element;
+    first_element := PHYSICAL_LAST_ELEMENT-last_element+1;
+    last_element  := PHYSICAL_LAST_ELEMENT-db          +1;
+
+    WRITE 6 '';
+    WRITE 6 '*** computation of reversed system is now '&txt;
+    WRITE 6 '';
+  ENDPROCEDURE;  {ReverseSystem}
+
+
+
+
+{***********************************************************************}
+{                       BEGIN of the MAIN ROUTINE                       }
+{***********************************************************************}
+
+
+{
+  WRITE 6 '                                                        ';
+  WRITE 6 '                                            |           ';
+  WRITE 6 '                                            |  /        ';
+  WRITE 6 '     _____________________________________  | /         ';
+  WRITE 6 '    /                                     \ |/____      ';
+  WRITE 6 '   /   ERNA simulator V1.3a (22-JAN-2003)  \|/    \__   ';
+  WRITE 6 ' =(    by H. Röcken                         #      __>  ';
+  WRITE 6 '   \   (based on septune10 by D. Rogalla)  /|\____/     ';
+  WRITE 6 '    \_____________________________________/ |           ';
+  WRITE 6 '                                         /  |           ';
+  WRITE 6 '                                        /   |           ';
+  WRITE 6 '                                                        ';
+}
+
+{
+  WRITE 6 '';
+  WRITE 6 '                                                                __';
+  WRITE 6 '         ___________________________________________           / /';
+  WRITE 6 '        /                                           \         /_/';
+  WRITE 6 '       /   ERNA simulator V1.7b (11-JUL-2003)        \       -/-';
+  WRITE 6 '      (    by H. Röcken (still very slightly based on )    __/_ ';
+  WRITE 6 '       \                 septune10 by D. Rogalla)    /    /   /';
+  WRITE 6 '        \___________________________________________/    /___/';
+  WRITE 6 '                                                        __/_';
+  WRITE 6 '                                                       /___/';
+  WRITE 6 '     \  |  /                                          /___/';
+  WRITE 6 '      \ | /                                          __/_';
+  WRITE 6 '       \|/ _ _ _      ___   ____________   _      __/   /';
+  WRITE 6 '   _____-_| | | |_|__|   |_|            |_| |_|__|     /';
+  WRITE 6 '        - |_|_|_| |  |___| |            | |_| |  |____/';
+  WRITE 6 '       /|\                 |____________|';
+  WRITE 6 '      / | \';
+  WRITE 6 '     /  |  \';
+  WRITE 6 '' '';
+}
+
+
+  WRITE 6 '';
+  WRITE 6 '         ___    _ _ _       ____          _       ____';
+  WRITE 6 '        /   |__| | | |_|___|    |________| |_|___|    \';
+  WRITE 6 '       /    |  |_|_|_| |   |____|        |_| |   |__   \';
+  WRITE 6 '      /____/                                        \___\';
+  WRITE 6 '        /                                            __\__';
+  WRITE 6 '   \ | /                                             \____\';
+  WRITE 6 '    \!/     _____________________________________     \____\';
+  WRITE 6 ' ----#---- /                                     \     __\__';
+  WRITE 6 '    /|\   /   ERNA simulator V2.3 (18-SET-2018)   \    \    \';
+  WRITE 6 '   / | \ /    by A. Di Leva and J.G. Duarte        \    \____\';
+  WRITE 6 '     |  \    (Improvement of V1.7b by H. Röcken    |       \';
+  WRITE 6 '         \    that is very slightly based          /      (__)';
+  WRITE 6 '          \   on septune10 by D. Rogalla)         /        _\_';
+  WRITE 6 '           \_____________________________________/         \  \';
+  WRITE 6 '                                                            \__\';
+  WRITE 6 '' '';
+
+
+  LFALSE ComputeReversedSystem;
+  LFALSE showSlitsAndFCs;
+  LFALSE show3Dgraphics;
+  LFALSE use_new_DTLsinglet;
+  projection_plane := '0';
+  InitConstants; {initialize the global (pseudo-) constants}
+
+{-----------------------------------------------------------------------}
+{                  initiate the optic calculation                       }
+{-----------------------------------------------------------------------}
+  calc_order := 3;
+  IF calc_order<3;
+    WRITE 6 '*********************************************';
+    WRITE 6 '*** calc_order reduced for speed reasons! ***';
+    WRITE 6 '*********************************************';
+{    next_step:='';
+    WHILE TYPE(next_step)#TYPE(1);
+      WRITE 6 ' enter 99 to continue, press <ENTER> to abort:';
+       READ 5 next_step;
+    ENDWHILE;
+    IF next_step#99;
+      QUIT 0;
+    ENDIF;}
+  ENDIF;
+  phase_space_dim := 3;
+  N_parameter     := 2;
+  OV calc_order phase_space_dim N_parameter;
+                                {initialize calculation Order and Values}
+
+  {graphics output setup:             }
+  LSYS:= 1; {show beamline elements   }
+  LCE := 1; {show type of elements    }
+  LAX := 1; {show total size of system}
+            {the latter works only with command PG (print graphics) which is
+             not used here; instead we use PP (print picture)}
+
+  init;
+  RP W A*para(1) q*para(2);
+  {RP W A q;  {define Reference Particle}}
+
+
+  WRITE 6 ''
+ 'Enter a name for this session'
+ '(this will be used as filename prefix, default is ''ERNADEFAULT'';'
+ ' hint: if you give the name of an _existing_ directory with ''/'' at the end'
+ ' (e.g. ''./myfiles/''), the files will be written into this directory):';
+  READ 5 session_name;
+  IF TYPE(session_name)=TYPE(1);
+    IF session_name=0;
+      session_name:='ERNADEFAULT';
+    ENDIF;
+  ENDIF;
+  WHILE TYPE(session_name)#TYPE('x');
+    WRITE 6 'Enter a string or press <ENTER> for default!';
+    READ 5 session_name;
+    IF TYPE(session_name)=TYPE(1);
+      IF session_name=0;
+        session_name:='ERNADEFAULT';
+      ENDIF;
+    ENDIF;
+  ENDWHILE;
+  tmp1 := LENGTH(session_name);
+  WHILE SS(session_name, tmp1, tmp1)=' ';
+    tmp1 := tmp1-1;
+  ENDWHILE;
+  session_name := SS(session_name, 1, tmp1);
+  session_number := 1;
+
+
+
+{-----------------------------------------------------------------------}
+{  defining the reference beam, geometry, initial fields, rays          }
+{-----------------------------------------------------------------------}
+  InitGeometry;   { initialize drift lengths, slit openings }
+  {first_element := 1;}
+  ProcessElement INIT_FIRST_LAST_ELEMENT;{initialize first, last element}
+  InitFields;   { initialize field values }
+  first_element := EL_GASTARGET;
+
+  {---------------------------------------------------------------
+  IF W>3;
+    WRITE 6 '*****************************************************';
+    WRITE 6 '*** check parameters of separation Wien filter 1! ***';
+    WRITE 6 '*****************************************************';
+    WRITE 6 '' 'press <ENTER> to continue...';
+    READ 5 next_step;
+  ENDIF;
+  ---------------------------------------------------------------}
+
+  beam_diameter   := -1;
+  beam_divergence := -1;
+
+  { initialize the random generator: }
+  CPUSEC elapsed_time;
+  tmp1 := elapsed_time-INT(elapsed_time); { 0 <= tmp1 < 1   }
+  tmp1 := INT(tmp1*1E5);                  { 0 <= tmp1 < 1E5 }
+  LOOP tmp2 1 tmp1;
+    RERAN tmp3;
+  ENDLOOP;
+
+
+
+  WRITE 6 
+ ''
+ '******'
+ 'V1.0 : Fully functional ERNA simulation.'
+ 'V1.2c: .'
+ 'V1.4b: Enter deviations from reference beam in absolute values.'
+ 'V1.4c: Start and stop parameters of ion rays are saved.'
+ 'V1.4d: Trace two different ion beams simultaneously.'
+ 'V1.4e: New DTL singlet; acceptance trace prints beam dims at SEPWF1 exit.'
+ 'V1.4f: Trace upto three ion beams simultaneously.'
+ 'V1.4h: Especially for Daniel: now tracing upto 150000 ions!'
+ 'V1.5a: New file formats for rays and fields input/output files.'
+ 'V1.5b: Improved Gaussian beam generation routine.'
+ 'V1.5c: You now can choose how many rays the ERNA code should create.'
+ 'V1.6a: Files (except graphics) are saved with session name/number.'
+ 'V1.7a: Set element calcualtion range *inside* elements.'
+ 'V1.7b: Beam params calculation at gastarget position. Some bugfixes.'
+ 'V2.0 : ERNA at CIRCE, with CSSM and some other layout modifications.'
+ 'V2.3 : Triplet mis., 0.5 factor of M, q and W dev., jet target and layout.'
+ '******'
+ '';
+
+
+{-----------------------------------------------------------------------}
+{             loop for optimizations, changing parameters               }
+{-----------------------------------------------------------------------}
+  next_step:=1;
+  WHILE next_step#99;
+    {ShowFields;}
+{-----------------------------------------------------------------------}
+
+    WRITE 6
+ '  /-----------------------------------------------------------------------\'
+ '  |  1: fit fields           2: set fields           3: show graphics     |'
+ '  |  4: create beam          5: angular acceptance   6: energy acceptance |'
+ '  |  7: modify beam          8: change element range 9: mod. some lengths |'
+ '  | 10: save everything     11: read fields         12: show fields       |'
+ '  | 13: elem. misalignments 14: calc. leaky beam    15: beam params at GT |'
+ '  | 16: show slits and FCs  17: reverse system      18: debug mode on/off |'
+ '  | 19: 3D graphics on/off  20: DTL singlet on/off  88: help              |'
+ '  \------------------------------------------------ 99: quit simulator ---/';
+
+
+    CheckFieldLimits;
+
+
+    IF debugging;
+      MEMALL tmp1;
+      MEMFRE tmp2;
+{      VARMAX tmp3; }
+      txt1 :=     'memory currently allocated:'&SF(tmp1/1024, '(I6)');
+      txt1:= txt1&'kB, free:'&SF(tmp2/1024, '(I6)')&'kB, for maximal';
+{      txt1:= txt1&SF(tmp3, '(I8)')&' vars'; }
+      WRITE 6 txt1;
+    ENDIF;
+
+
+    next_step := ' ';
+    WHILE TYPE(next_step)#TYPE(1);
+      READ 5 next_step;
+    ENDWHILE;
+    
+    IF next_step=99;
+      WRITE 6 '  save results (99=yes, <ENTER>=no, -1=back to menu)?';
+      save := '';
+      WHILE TYPE(save)#TYPE(1);
+        READ 5 save;
+      ENDWHILE;
+      IF save=99;
+        SaveResults;
+      ELSEIF save=-1;
+        next_step := 0;
+      ENDIF;
+    ELSEIF next_step=1;  Optimize;
+    ELSEIF next_step=2;  SetFields;
+    ELSEIF next_step=3;  PlotX -1 0;
+                         PlotY -2 0;
+                         IF show3Dgraphics;
+                           PlotLab -3 1;
+                         ENDIF;
+    ELSEIF next_step=4;  DefineRays;
+    ELSEIF next_step=5;  CalcTransmission;
+    ELSEIF next_step=6;  E_scan;
+    ELSEIF next_step=7;  SetDeviations;
+    ELSEIF next_step=8;  ChangeElementRange;
+    ELSEIF next_step=9;  ChangeDimensions;
+    ELSEIF next_step=10; SaveResults;
+    ELSEIF next_step=11; ReadFields;
+    ELSEIF next_step=12; ShowFields;
+    ELSEIF next_step=13; AlignElements;
+    ELSEIF next_step=14; CalcLeakyBeam;
+    ELSEIF next_step=15; CalcBeamParamsAtGT;
+    ELSEIF next_step=16; showSlitsAndFCs := NOT(showSlitsAndFCs);
+                         IF showSlitsAndFCs;
+                           WRITE 6 ''
+           'OK, slits and FCs will be shown in next graphics update!' '';
+                         ELSEIF 1=1;
+                           WRITE 6 ''
+           'OK, slits and FCs will disappear in next graphics update!' '';
+                         ENDIF;
+    ELSEIF next_step=17; ReverseSystem;
+    ELSEIF next_step=18; ToggleDebugging;
+    ELSEIF next_step=19; show3Dgraphics := NOT(show3Dgraphics);
+                         IF show3Dgraphics;
+                           WRITE 6 'phi: ';
+                           phi_lab := ReadNumVal(phi_lab);
+                           WRITE 6 'theta: ';
+                           theta_lab := ReadNumVal(theta_lab);
+                           PlotLab -123 1;
+                         ELSEIF 1=1;
+                           WRITE 6 ''
+                                 '3D graph will not be updated any more!' '';
+                         ENDIF;
+    ELSEIF next_step=20; use_new_DTLsinglet := NOT(use_new_DTLsinglet);
+                         IF use_new_DTLsinglet;
+                           WRITE 6 ''
+    'I will use the new DTL singlet (DTLSINGLET2) downstream of the'
+    'DTL doublet for focusing. Fields are now set to previous/start values.'
+    'The singlet will appear during next graphics update.' '';
+                           B_DTLsinglet2 := B_DTLsinglet2old;
+                         ELSEIF 1=1;
+                           WRITE 6 ''
+    'The new DTL singlet (DTLSINGLET2) downstream of the DTL doublet will not'
+    'be used for focusing any more. Also it will disappear during next'
+    'graphics update.' '';
+                           B_DTLsinglet2old := B_DTLsinglet2;
+                           B_DTLsinglet2 := 0;
+                         ENDIF;
+    ELSEIF next_step=88; WRITE 6 'do you need'
+                                 '   - just a hint   : 1'
+                                 '   - verbose help  : 2';
+                         READ 5 next_step;
+                         IF     next_step=1;
+                           WRITE 6 ''
+                                   'Come on, get real! There is no help here!'
+                                   '';
+                         ELSEIF next_step=2;
+                           WRITE 6 ''
+        'Look, who should spend the time to implement a help system for this'
+        'software? Got my point? I''m sorry, but you have to face the fact:'
+        'There is no help here!'
+                                   '';
+                         ENDIF;
+                         next_step := 0;
+    ENDIF;
+  ENDWHILE;
+
+  WRITE 6 ' bye ;D';
+  WRITE 6 ' ';
+
+
+ENDPROCEDURE; {RUN}
+
+RUN; {main program}
+
+END;
